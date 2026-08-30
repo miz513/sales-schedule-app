@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>スケジュール管理</title>
-<link rel="stylesheet" href="style.css?v=10">
+<link rel="stylesheet" href="style.css?v=11">
 </head>
 <body>
 <div class="app">
@@ -71,16 +71,23 @@
 
         <div class="form-row compact-row date-time-row">
           <div class="dt-field dt-date">
-            <label>日付</label>
-            <input type="date" id="eventDate" required>
+            <label>開始日</label>
+            <input type="date" id="eventStartDate" required>
           </div>
-          <div class="dt-field dt-time" id="startField">
-            <label>開始</label>
-            <input type="time" id="eventStart">
+          <div class="dt-field dt-time" id="startTimeField">
+            <label>開始時刻</label>
+            <input type="time" id="eventStartTime">
           </div>
-          <div class="dt-field dt-time" id="endField">
-            <label>終了</label>
-            <input type="time" id="eventEnd">
+        </div>
+
+        <div class="form-row compact-row date-time-row">
+          <div class="dt-field dt-date">
+            <label>終了日</label>
+            <input type="date" id="eventEndDate" required>
+          </div>
+          <div class="dt-field dt-time" id="endTimeField">
+            <label>終了時刻</label>
+            <input type="time" id="eventEndTime">
           </div>
         </div>
 
@@ -127,6 +134,7 @@
       <h2>種別を管理</h2>
       <button class="close-btn" data-close="categoryModal">×</button>
     </div>
+    <p class="hint-text">各項目を長押ししてドラッグすると、並び順を変更できます。</p>
     <div id="categoryList" class="category-list"></div>
 
     <div class="add-category-form">
@@ -140,6 +148,6 @@
   </div>
 </div>
 
-<script src="app.js?v=10"></script>
+<script src="app.js?v=11"></script>
 </body>
 </html>

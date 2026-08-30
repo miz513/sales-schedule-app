@@ -37,11 +37,19 @@
       if (!raw) return [];
       const parsed = JSON.parse(raw);
       if (!Array.isArray(parsed)) return [];
-      return parsed;
+      return parsed.map(migrateEvent);
     } catch (e) {
       console.error("イベントの読み込みに失敗しました", e);
       return [];
     }
+  }
+
+  // Older saved events used a single "date" + "start"/"end" time pair.
+  // Convert them to the startDate/endDate range format.
+  function migrateEvent(ev) {
+    if (ev.startDate) return ev;
+    const { date, start, end, ...rest } = ev;
+    return { ...rest, startDate: date, endDate: date, startTime: start || "", endTime: end || "" };
   }
 
   function saveEvents() {
@@ -152,12 +160,13 @@
   const eventModalTitle = document.getElementById("eventModalTitle");
   const eventForm = document.getElementById("eventForm");
   const eventIdInput = document.getElementById("eventId");
-  const eventDateInput = document.getElementById("eventDate");
-  const eventStartInput = document.getElementById("eventStart");
-  const eventEndInput = document.getElementById("eventEnd");
+  const eventStartDateInput = document.getElementById("eventStartDate");
+  const eventStartTimeInput = document.getElementById("eventStartTime");
+  const eventEndDateInput = document.getElementById("eventEndDate");
+  const eventEndTimeInput = document.getElementById("eventEndTime");
   const eventAllDayInput = document.getElementById("eventAllDay");
-  const startField = document.getElementById("startField");
-  const endField = document.getElementById("endField");
+  const startTimeField = document.getElementById("startTimeField");
+  const endTimeField = document.getElementById("endTimeField");
   const eventCategoryInput = document.getElementById("eventCategory");
   const eventTitleInput = document.getElementById("eventTitle");
   const eventNotesInput = document.getElementById("eventNotes");
@@ -197,8 +206,37 @@
 
   function getEventsForDate(dateKey) {
     return events
-      .filter((ev) => ev.date === dateKey && matchesFilters(ev))
-      .sort((a, b) => (a.start || "").localeCompare(b.start || ""));
+      .filter((ev) => ev.startDate <= dateKey && dateKey <= ev.endDate && matchesFilters(ev))
+      .sort((a, b) => (a.startTime || "").localeCompare(b.startTime || ""));
+  }
+
+  function formatShortDate(dateKey) {
+    const [, m, d] = dateKey.split("-");
+    return `${parseInt(m, 10)}/${parseInt(d, 10)}`;
+  }
+
+  // Full-detail time label (day modal, week cards): describes how the event
+  // relates to this specific date when it spans multiple days.
+  function eventTimeLabel(ev, dateKey) {
+    const singleDay = ev.startDate === ev.endDate;
+    if (singleDay) {
+      return ev.startTime ? ev.startTime + (ev.endTime ? " - " + ev.endTime : "") : "終日";
+    }
+    if (dateKey === ev.startDate) {
+      return `${ev.startTime || "終日"} 〜${formatShortDate(ev.endDate)}`;
+    }
+    if (dateKey === ev.endDate) {
+      return `${formatShortDate(ev.startDate)}〜 ${ev.endTime || "終日"}`;
+    }
+    return `${formatShortDate(ev.startDate)}〜${formatShortDate(ev.endDate)} 終日`;
+  }
+
+  // Compact label for tiny month-view pills.
+  function monthPillLabel(ev, dateKey) {
+    if (ev.startDate === ev.endDate) return ev.startTime ? ev.startTime + " " : "";
+    if (dateKey === ev.startDate) return "▶ ";
+    if (dateKey === ev.endDate) return "◀ ";
+    return "─ ";
   }
 
   function renderMonthView() {
@@ -225,7 +263,7 @@
       const maxShow = 3;
       let eventsHtml = "";
       dayEvents.slice(0, maxShow).forEach((ev) => {
-        const timeLabel = ev.start ? ev.start + " " : "";
+        const timeLabel = monthPillLabel(ev, dateKey);
         eventsHtml += `<div class="event-pill" style="background-color:${getCategoryColor(ev.category)}">${timeLabel}${escapeHtml(ev.title)}</div>`;
       });
       if (dayEvents.length > maxShow) {
@@ -264,7 +302,7 @@
         eventsHtml = `<div class="empty-hint">予定なし</div>`;
       } else {
         dayEvents.forEach((ev) => {
-          const timeRange = ev.start ? `${ev.start}${ev.end ? " - " + ev.end : ""}` : "終日";
+          const timeRange = eventTimeLabel(ev, dateKey);
           const noteSnippet = ev.notes ? escapeHtml(ev.notes) : "";
           eventsHtml += `
             <div class="week-event-card" style="border-left-color:${getCategoryColor(ev.category)}" data-id="${ev.id}">
@@ -315,7 +353,7 @@
     } else {
       dayModalList.innerHTML = dayEvents
         .map((ev) => {
-          const timeRange = ev.start ? `${ev.start}${ev.end ? " - " + ev.end : ""}` : "終日";
+          const timeRange = eventTimeLabel(ev, dateKey);
           return `
           <div class="day-event-item" style="border-left-color:${getCategoryColor(ev.category)}" data-id="${ev.id}">
             <div class="dtime">${timeRange} ・ ${escapeHtml(ev.category)}</div>
@@ -346,27 +384,36 @@
 
   function syncAllDayUI() {
     const isAllDay = eventAllDayInput.checked;
-    eventStartInput.disabled = isAllDay;
-    eventEndInput.disabled = isAllDay;
-    startField.classList.toggle("hidden", isAllDay);
-    endField.classList.toggle("hidden", isAllDay);
+    eventStartTimeInput.disabled = isAllDay;
+    eventEndTimeInput.disabled = isAllDay;
+    startTimeField.classList.toggle("hidden", isAllDay);
+    endTimeField.classList.toggle("hidden", isAllDay);
     if (isAllDay) {
-      eventStartInput.value = "";
-      eventEndInput.value = "";
+      eventStartTimeInput.value = "";
+      eventEndTimeInput.value = "";
     }
   }
 
   eventAllDayInput.addEventListener("change", syncAllDayUI);
+
+  // Keep the end date from falling before the start date; single-day events
+  // (the common case) just move together as the user picks a start date.
+  eventStartDateInput.addEventListener("change", () => {
+    if (!eventEndDateInput.value || eventEndDateInput.value < eventStartDateInput.value) {
+      eventEndDateInput.value = eventStartDateInput.value;
+    }
+  });
 
   function openEventModal(ev, presetDateKey) {
     eventForm.reset();
     if (ev) {
       eventModalTitle.textContent = "予定を編集";
       eventIdInput.value = ev.id;
-      eventDateInput.value = ev.date;
-      eventStartInput.value = ev.start || "";
-      eventEndInput.value = ev.end || "";
-      eventAllDayInput.checked = !ev.start && !ev.end;
+      eventStartDateInput.value = ev.startDate;
+      eventEndDateInput.value = ev.endDate;
+      eventStartTimeInput.value = ev.startTime || "";
+      eventEndTimeInput.value = ev.endTime || "";
+      eventAllDayInput.checked = !ev.startTime && !ev.endTime;
       renderCategorySelectOptions(ev.category);
       eventTitleInput.value = ev.title;
       eventNotesInput.value = ev.notes || "";
@@ -374,7 +421,9 @@
     } else {
       eventModalTitle.textContent = "予定を追加";
       eventIdInput.value = "";
-      eventDateInput.value = presetDateKey || toDateKey(new Date());
+      const dateKey = presetDateKey || toDateKey(new Date());
+      eventStartDateInput.value = dateKey;
+      eventEndDateInput.value = dateKey;
       eventAllDayInput.checked = false;
       renderCategorySelectOptions(categories[0] ? categories[0].name : undefined);
       btnDeleteEvent.classList.add("hidden");
@@ -389,16 +438,21 @@
 
     const id = eventIdInput.value;
     const isAllDay = eventAllDayInput.checked;
+    let startDate = eventStartDateInput.value;
+    let endDate = eventEndDateInput.value;
+    if (endDate < startDate) endDate = startDate;
+
     const data = {
-      date: eventDateInput.value,
-      start: isAllDay ? "" : eventStartInput.value,
-      end: isAllDay ? "" : eventEndInput.value,
+      startDate,
+      endDate,
+      startTime: isAllDay ? "" : eventStartTimeInput.value,
+      endTime: isAllDay ? "" : eventEndTimeInput.value,
       category: eventCategoryInput.value,
       title: eventTitleInput.value.trim(),
       notes: eventNotesInput.value,
     };
 
-    if (!data.title || !data.date) return;
+    if (!data.title || !data.startDate || !data.endDate) return;
 
     if (id) {
       const idx = events.findIndex((ev) => ev.id === id);
