@@ -228,6 +228,21 @@ html, body {
   touch-action: pan-y;
 }
 
+/* Month view fills the full available height: no scrolling, rows stretch to fit */
+.main-area.view-month {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-bottom: 16px;
+}
+.main-area.view-month .weekday-header {
+  flex-shrink: 0;
+}
+.main-area.view-month .month-grid {
+  flex: 1;
+  min-height: 0;
+}
+
 /* Visual feedback when navigating between periods (swipe or arrow buttons) */
 @keyframes navEnterFromRight {
   from { transform: translateX(28px); opacity: 0.4; }
@@ -244,6 +259,7 @@ html, body {
 .month-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(6, 1fr);
   gap: 8px;
 }
 .weekday-header {
@@ -266,12 +282,13 @@ html, body {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
-  min-height: 110px;
+  min-height: 70px;
   padding: 6px;
   display: flex;
   flex-direction: column;
   cursor: pointer;
   transition: box-shadow .1s ease;
+  overflow: hidden;
 }
 .day-cell:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
 .day-cell.other-month { opacity: 0.45; }

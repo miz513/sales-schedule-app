@@ -167,6 +167,8 @@
 
   function render() {
     renderPeriodLabel();
+    mainArea.classList.toggle("view-month", state.view === "month");
+    mainArea.classList.toggle("view-week", state.view === "week");
     if (state.view === "month") {
       renderMonthView();
     } else {
