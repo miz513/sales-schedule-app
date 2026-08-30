@@ -169,9 +169,6 @@
   const btnMenu = document.getElementById("btnMenu");
   const menuDropdown = document.getElementById("menuDropdown");
   const btnManageCategories = document.getElementById("btnManageCategories");
-  const btnExport = document.getElementById("btnExport");
-  const btnImport = document.getElementById("btnImport");
-  const importFile = document.getElementById("importFile");
   const categoryChips = document.getElementById("categoryChips");
 
   const categoryModal = document.getElementById("categoryModal");
@@ -667,59 +664,13 @@
     });
   }
 
-  // ---------- Menu / Export / Import ----------
+  // ---------- Menu ----------
 
   btnMenu.addEventListener("click", (e) => {
     e.stopPropagation();
     menuDropdown.classList.toggle("hidden");
   });
   document.addEventListener("click", () => menuDropdown.classList.add("hidden"));
-
-  btnExport.addEventListener("click", () => {
-    const payload = { events, categories };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    const stamp = toDateKey(new Date());
-    a.href = url;
-    a.download = `sales-schedule-backup-${stamp}.json`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  });
-
-  btnImport.addEventListener("click", () => importFile.click());
-
-  importFile.addEventListener("change", () => {
-    const file = importFile.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const parsed = JSON.parse(reader.result);
-        const importedEvents = Array.isArray(parsed) ? parsed : parsed.events;
-        const importedCategories = Array.isArray(parsed) ? null : parsed.categories;
-        if (!Array.isArray(importedEvents)) throw new Error("形式が不正です");
-        if (!confirm(`${importedEvents.length}件の予定を読み込みます。現在のデータはこの内容で置き換わります。よろしいですか？`)) return;
-        events = importedEvents;
-        saveEvents();
-        if (Array.isArray(importedCategories) && importedCategories.length > 0) {
-          categories = importedCategories;
-          saveCategories();
-        }
-        state.activeCategories = new Set();
-        renderCategoryChips();
-        renderCategorySelectOptions();
-        render();
-      } catch (err) {
-        alert("ファイルの読み込みに失敗しました。JSON形式のバックアップファイルを選択してください。");
-      } finally {
-        importFile.value = "";
-      }
-    };
-    reader.readAsText(file);
-  });
 
   // ---------- Category management ----------
 
