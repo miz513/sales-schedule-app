@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>スケジュール管理</title>
-<link rel="stylesheet" href="style.css?v=11">
+<link rel="stylesheet" href="style.css?v=12">
 </head>
 <body>
 <div class="app">
@@ -27,6 +27,9 @@
       <button id="btnNewEvent" class="primary-btn">＋ 予定を追加</button>
       <button id="btnMenu" class="icon-btn" title="メニュー">⋮</button>
       <div id="menuDropdown" class="menu-dropdown hidden">
+        <button id="btnSignIn">Googleでログイン（同期）</button>
+        <button id="btnSignOut" class="hidden">ログアウト</button>
+        <div id="syncStatus" class="sync-status"></div>
         <button id="btnManageCategories">種別を管理</button>
         <button id="btnExport">エクスポート（バックアップ）</button>
         <button id="btnImport">インポート（復元）</button>
@@ -148,6 +151,7 @@
   </div>
 </div>
 
-<script src="app.js?v=11"></script>
+<script src="app.js?v=12"></script>
+<script type="module" src="firebase-sync.js?v=1"></script>
 </body>
 </html>

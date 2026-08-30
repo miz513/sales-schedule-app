@@ -54,6 +54,7 @@
 
   function saveEvents() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+    notifyDataChanged();
   }
 
   function loadCategories() {
@@ -71,7 +72,38 @@
 
   function saveCategories() {
     localStorage.setItem(CATEGORY_STORAGE_KEY, JSON.stringify(categories));
+    notifyDataChanged();
   }
+
+  // ---------- Cloud sync hook ----------
+  // A tiny public surface so firebase-sync.js can read/replace all local data
+  // and get notified when it changes, without needing to know this module's internals.
+
+  const changeListeners = [];
+  function notifyDataChanged() {
+    changeListeners.forEach((cb) => cb());
+  }
+
+  function setData(data) {
+    events = Array.isArray(data.events) ? data.events.map(migrateEvent) : [];
+    categories =
+      Array.isArray(data.categories) && data.categories.length
+        ? data.categories
+        : DEFAULT_CATEGORIES.map((c) => ({ ...c }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+    localStorage.setItem(CATEGORY_STORAGE_KEY, JSON.stringify(categories));
+    state.activeCategories = new Set();
+    renderCategoryChips();
+    renderCategorySelectOptions();
+    render();
+    refreshOpenDayModalIfNeeded();
+  }
+
+  window.ScheduleApp = {
+    getData: () => ({ events, categories }),
+    setData,
+    onChange: (cb) => changeListeners.push(cb),
+  };
 
   function getCategoryColor(name) {
     const found = categories.find((c) => c.name === name);

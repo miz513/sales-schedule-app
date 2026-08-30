@@ -173,6 +173,16 @@ html, body {
 }
 .menu-dropdown button:hover { background: #f0f2f5; }
 
+.sync-status {
+  padding: 2px 14px 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+  word-break: break-all;
+}
+.sync-status:empty { display: none; }
+
 /* ---------- Filter bar ---------- */
 .filter-bar {
   display: flex;
