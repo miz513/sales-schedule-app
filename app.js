@@ -25,8 +25,7 @@
   let state = {
     view: "month", // 'month' | 'week'
     cursor: startOfDay(new Date()), // reference date for current period
-    activeCategories: new Set(categories.map((c) => c.name)),
-    searchTerm: "",
+    activeCategories: new Set(), // empty = show all; non-empty = show only these
     dayModalDate: null, // Date currently shown in day modal
   };
 
@@ -135,7 +134,6 @@
   const btnExport = document.getElementById("btnExport");
   const btnImport = document.getElementById("btnImport");
   const importFile = document.getElementById("importFile");
-  const searchInput = document.getElementById("searchInput");
   const categoryChips = document.getElementById("categoryChips");
 
   const categoryModal = document.getElementById("categoryModal");
@@ -191,12 +189,7 @@
   }
 
   function matchesFilters(ev) {
-    if (!state.activeCategories.has(ev.category)) return false;
-    if (state.searchTerm) {
-      const t = state.searchTerm.toLowerCase();
-      const hay = [ev.title, ev.customer, ev.place, ev.notes, ev.followup].join(" ").toLowerCase();
-      if (!hay.includes(t)) return false;
-    }
+    if (state.activeCategories.size > 0 && !state.activeCategories.has(ev.category)) return false;
     return true;
   }
 
@@ -501,15 +494,6 @@
     });
   }
 
-  let searchDebounce = null;
-  searchInput.addEventListener("input", () => {
-    clearTimeout(searchDebounce);
-    searchDebounce = setTimeout(() => {
-      state.searchTerm = searchInput.value.trim();
-      render();
-    }, 150);
-  });
-
   // ---------- Menu / Export / Import ----------
 
   btnMenu.addEventListener("click", (e) => {
@@ -551,7 +535,7 @@
           categories = importedCategories;
           saveCategories();
         }
-        state.activeCategories = new Set(categories.map((c) => c.name));
+        state.activeCategories = new Set();
         renderCategoryChips();
         renderCategorySelectOptions();
         render();
@@ -808,7 +792,6 @@
       return false;
     }
     categories.push({ name, color: color || FALLBACK_COLOR });
-    state.activeCategories.add(name);
     saveCategories();
     renderCategoryChips();
     renderCategorySelectOptions(name);
