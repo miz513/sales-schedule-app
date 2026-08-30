@@ -69,18 +69,17 @@
       <div class="modal-body">
         <input type="hidden" id="eventId">
 
-        <div class="form-row">
-          <label>日付</label>
-          <input type="date" id="eventDate" required>
-        </div>
-
-        <div class="form-row two-col">
-          <div>
-            <label>開始時刻</label>
+        <div class="form-row compact-row date-time-row">
+          <div class="dt-field dt-date">
+            <label>日付</label>
+            <input type="date" id="eventDate" required>
+          </div>
+          <div class="dt-field dt-time">
+            <label>開始</label>
             <input type="time" id="eventStart">
           </div>
-          <div>
-            <label>終了時刻</label>
+          <div class="dt-field dt-time">
+            <label>終了</label>
             <input type="time" id="eventEnd">
           </div>
         </div>
