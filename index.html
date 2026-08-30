@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>スケジュール管理</title>
-<link rel="stylesheet" href="style.css?v=19">
+<link rel="stylesheet" href="style.css?v=20">
 </head>
 <body>
 
@@ -47,7 +47,12 @@
   <div class="filter-bar">
     <span class="filter-label">絞り込み:</span>
     <div id="categoryChips" class="chips-container"></div>
-    <button id="btnManageCategories" class="icon-btn" title="種別を管理">⚙</button>
+    <button id="btnManageCategories" class="icon-btn" title="種別を管理">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+      </svg>
+    </button>
   </div>
 
   <main id="mainArea" class="main-area">
@@ -158,7 +163,7 @@
   </div>
 </div>
 
-<script src="app.js?v=19"></script>
+<script src="app.js?v=20"></script>
 <script type="module" src="firebase-sync.js?v=3"></script>
 </body>
 </html>
