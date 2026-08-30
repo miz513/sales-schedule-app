@@ -65,7 +65,7 @@ function scheduleSave() {
       updateStatus(`同期済み (${currentUser.email})`);
     } catch (e) {
       console.error(e);
-      updateStatus("同期エラー。電波状況をご確認ください。");
+      updateStatus(`同期エラー: ${e.code || e.message || e}`);
     }
   }, 800);
 }
@@ -83,7 +83,7 @@ onAuthStateChanged(auth, async (user) => {
       updateStatus(`同期済み (${user.email})`);
     } catch (e) {
       console.error(e);
-      updateStatus("読み込みエラー。電波状況をご確認ください。");
+      updateStatus(`読み込みエラー: ${e.code || e.message || e}`);
     }
   } else {
     btnSignIn.classList.remove("hidden");
@@ -97,7 +97,7 @@ btnSignIn.addEventListener("click", async () => {
     await signInWithPopup(auth, provider);
   } catch (e) {
     console.error(e);
-    alert("ログインに失敗しました。" + (e && e.message ? e.message : ""));
+    alert("ログインに失敗しました。" + (e && (e.code || e.message) ? e.code || e.message : ""));
   }
 });
 
