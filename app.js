@@ -711,8 +711,8 @@
       })
       .join("");
 
-    categoryList.querySelectorAll(".cat-handle").forEach((handle) => {
-      attachCategoryDragHandle(handle);
+    categoryList.querySelectorAll(".category-row:not(.editing)").forEach((row) => {
+      attachCategoryDragHandle(row);
     });
 
     categoryList.querySelectorAll(".cat-edit").forEach((btn) => {
