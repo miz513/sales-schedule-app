@@ -221,8 +221,10 @@ html, body {
 /* ---------- Main area ---------- */
 .main-area {
   flex: 1;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   padding: 16px 20px 40px;
+  touch-action: pan-y;
 }
 
 /* ---- Month grid ---- */
@@ -302,6 +304,7 @@ html, body {
   gap: 10px;
   overflow-x: auto;
   align-items: stretch;
+  touch-action: pan-x pan-y;
 }
 .week-day-col {
   background: var(--surface);

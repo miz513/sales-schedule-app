@@ -466,6 +466,66 @@
 
   btnNewEvent.addEventListener("click", () => openEventModal(null, toDateKey(state.cursor)));
 
+  // ---------- Swipe navigation (month/week) ----------
+  // In week view, the day columns scroll horizontally on their own, so a swipe
+  // only changes the period once that inner scroll is already at its edge.
+
+  (function setupSwipeNav() {
+    const SWIPE_MIN_DIST = 50;
+    const SWIPE_MAX_TIME = 600;
+    let startX = 0;
+    let startY = 0;
+    let startTime = 0;
+    let startScrollLeft = 0;
+    let startScrollMax = 0;
+
+    mainArea.addEventListener(
+      "touchstart",
+      (e) => {
+        if (e.touches.length !== 1) return;
+        const t = e.touches[0];
+        startX = t.clientX;
+        startY = t.clientY;
+        startTime = Date.now();
+        const grid = mainArea.querySelector(".week-grid");
+        if (grid) {
+          startScrollLeft = grid.scrollLeft;
+          startScrollMax = grid.scrollWidth - grid.clientWidth;
+        } else {
+          startScrollLeft = 0;
+          startScrollMax = 0;
+        }
+      },
+      { passive: true }
+    );
+
+    mainArea.addEventListener(
+      "touchend",
+      (e) => {
+        const t = e.changedTouches[0];
+        if (!t) return;
+        const dx = t.clientX - startX;
+        const dy = t.clientY - startY;
+        const dt = Date.now() - startTime;
+        if (dt > SWIPE_MAX_TIME) return;
+        if (Math.abs(dx) < SWIPE_MIN_DIST) return;
+        if (Math.abs(dx) < Math.abs(dy) * 1.5) return;
+
+        if (state.view === "week") {
+          if (dx < 0 && startScrollLeft < startScrollMax - 2) return; // more days to scroll to before switching week
+          if (dx > 0 && startScrollLeft > 2) return;
+        }
+
+        if (dx < 0) {
+          btnNext.click();
+        } else {
+          btnPrev.click();
+        }
+      },
+      { passive: true }
+    );
+  })();
+
   // ---------- Filters (category chips) ----------
 
   function renderCategoryChips() {
