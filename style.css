@@ -29,6 +29,7 @@ html, body {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh; /* excludes mobile browser toolbars so nothing is hidden below the fold */
   overflow-x: hidden; /* avoid a scrollbar flash while the nav slide animation runs */
 }
 
