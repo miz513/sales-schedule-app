@@ -249,13 +249,14 @@
     if (singleDay) {
       return ev.startTime ? ev.startTime + (ev.endTime ? " - " + ev.endTime : "") : "終日";
     }
-    if (dateKey === ev.startDate) {
-      return `${ev.startTime || "終日"} 〜${formatShortDate(ev.endDate)}`;
+    const range = `${formatShortDate(ev.startDate)}〜${formatShortDate(ev.endDate)}`;
+    if (dateKey === ev.startDate && ev.startTime) {
+      return `${range} ${ev.startTime}開始`;
     }
-    if (dateKey === ev.endDate) {
-      return `${formatShortDate(ev.startDate)}〜 ${ev.endTime || "終日"}`;
+    if (dateKey === ev.endDate && ev.endTime) {
+      return `${range} ${ev.endTime}終了`;
     }
-    return `${formatShortDate(ev.startDate)}〜${formatShortDate(ev.endDate)} 終日`;
+    return `${range} 終日`;
   }
 
   // Compact label for tiny month-view pills.
