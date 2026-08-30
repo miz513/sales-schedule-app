@@ -29,6 +29,7 @@ html, body {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  overflow-x: hidden; /* avoid a scrollbar flash while the nav slide animation runs */
 }
 
 /* ---------- Topbar ---------- */
@@ -227,6 +228,18 @@ html, body {
   touch-action: pan-y;
 }
 
+/* Visual feedback when navigating between periods (swipe or arrow buttons) */
+@keyframes navEnterFromRight {
+  from { transform: translateX(28px); opacity: 0.4; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes navEnterFromLeft {
+  from { transform: translateX(-28px); opacity: 0.4; }
+  to { transform: translateX(0); opacity: 1; }
+}
+.main-area.anim-next { animation: navEnterFromRight 0.22s ease-out; }
+.main-area.anim-prev { animation: navEnterFromLeft 0.22s ease-out; }
+
 /* ---- Month grid ---- */
 .month-grid {
   display: grid;
@@ -313,6 +326,7 @@ html, body {
   padding: 10px;
   display: flex;
   flex-direction: column;
+  min-height: max(360px, calc(100vh - 260px));
 }
 .week-day-col.today { background: var(--today-bg); border-color: #93c5fd; }
 .week-day-header {

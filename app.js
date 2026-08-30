@@ -439,15 +439,24 @@
 
   // ---------- Navigation ----------
 
-  btnPrev.addEventListener("click", () => {
-    state.cursor = state.view === "month" ? addMonths(state.cursor, -1) : addDays(state.cursor, -7);
-    render();
-  });
+  function playNavAnimation(direction) {
+    mainArea.classList.remove("anim-next", "anim-prev");
+    void mainArea.offsetWidth; // force reflow so the animation restarts every time
+    mainArea.classList.add(direction === "next" ? "anim-next" : "anim-prev");
+  }
 
-  btnNext.addEventListener("click", () => {
-    state.cursor = state.view === "month" ? addMonths(state.cursor, 1) : addDays(state.cursor, 7);
+  function navigate(direction) {
+    if (direction === "prev") {
+      state.cursor = state.view === "month" ? addMonths(state.cursor, -1) : addDays(state.cursor, -7);
+    } else {
+      state.cursor = state.view === "month" ? addMonths(state.cursor, 1) : addDays(state.cursor, 7);
+    }
     render();
-  });
+    playNavAnimation(direction);
+  }
+
+  btnPrev.addEventListener("click", () => navigate("prev"));
+  btnNext.addEventListener("click", () => navigate("next"));
 
   btnToday.addEventListener("click", () => {
     state.cursor = startOfDay(new Date());
@@ -517,9 +526,9 @@
         }
 
         if (dx < 0) {
-          btnNext.click();
+          navigate("next");
         } else {
-          btnPrev.click();
+          navigate("prev");
         }
       },
       { passive: true }
