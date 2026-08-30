@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>営業スケジュール管理</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1>営業スケジュール管理</h1>
+    </div>
+    <div class="topbar-center">
+      <button id="btnPrev" class="icon-btn" title="前へ">&lt;</button>
+      <button id="btnToday" class="today-btn">今日</button>
+      <button id="btnNext" class="icon-btn" title="次へ">&gt;</button>
+      <span id="periodLabel" class="period-label"></span>
+    </div>
+    <div class="topbar-right">
+      <div class="view-toggle">
+        <button id="btnMonthView" class="view-btn active" data-view="month">月</button>
+        <button id="btnWeekView" class="view-btn" data-view="week">週</button>
+      </div>
+      <button id="btnNewEvent" class="primary-btn">＋ 予定を追加</button>
+      <button id="btnMenu" class="icon-btn" title="メニュー">⋮</button>
+      <div id="menuDropdown" class="menu-dropdown hidden">
+        <button id="btnManageCategories">種別を管理</button>
+        <button id="btnExport">エクスポート（バックアップ）</button>
+        <button id="btnImport">インポート（復元）</button>
+        <input type="file" id="importFile" accept="application/json" class="hidden">
+      </div>
+    </div>
+  </header>
+
+  <div class="filter-bar">
+    <span class="filter-label">表示:</span>
+    <div id="categoryChips" class="chips-container"></div>
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="顧客名・タイトル・メモを検索">
+    </div>
+  </div>
+
+  <main id="mainArea" class="main-area">
+    <!-- 月表示・週表示はJSで描画 -->
+  </main>
+
+</div>
+
+<!-- 日詳細モーダル -->
+<div id="dayModal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="dayModalTitle">予定</h2>
+      <button class="close-btn" data-close="dayModal">×</button>
+    </div>
+    <div id="dayModalList" class="day-event-list"></div>
+    <button id="btnAddInDay" class="primary-btn full-width">＋ この日に予定を追加</button>
+  </div>
+</div>
+
+<!-- 予定編集モーダル -->
+<div id="eventModal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="eventModalTitle">予定を追加</h2>
+      <button class="close-btn" data-close="eventModal">×</button>
+    </div>
+    <form id="eventForm">
+      <input type="hidden" id="eventId">
+
+      <div class="form-row">
+        <label>日付</label>
+        <input type="date" id="eventDate" required>
+      </div>
+
+      <div class="form-row two-col">
+        <div>
+          <label>開始時刻</label>
+          <input type="time" id="eventStart">
+        </div>
+        <div>
+          <label>終了時刻</label>
+          <input type="time" id="eventEnd">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label>種別</label>
+        <div class="category-select-row">
+          <select id="eventCategory"></select>
+          <button type="button" id="btnAddCategoryInline" class="secondary-btn" title="新しい種別を追加">＋ 種別を追加</button>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label>タイトル</label>
+        <input type="text" id="eventTitle" placeholder="例：新規提案商談" required>
+      </div>
+
+      <div class="form-row two-col">
+        <div>
+          <label>顧客名・会社名</label>
+          <input type="text" id="eventCustomer" placeholder="例：株式会社〇〇 山田様">
+        </div>
+        <div>
+          <label>場所</label>
+          <input type="text" id="eventPlace" placeholder="例：先方オフィス／オンライン">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label>商談メモ・議事録（何行でも自由に記入できます）</label>
+        <textarea id="eventNotes" rows="10" placeholder="ヒアリング内容、提案内容、先方の反応、次回アクション、決裁者情報など、気になったことは全てここに記録してください。"></textarea>
+      </div>
+
+      <div class="form-row">
+        <label>次回アクション・フォロー予定</label>
+        <input type="text" id="eventFollowup" placeholder="例：来週水曜に見積送付、月末に電話フォロー">
+      </div>
+
+      <div class="form-actions">
+        <button type="button" id="btnDeleteEvent" class="danger-btn hidden">削除</button>
+        <div class="spacer"></div>
+        <button type="button" class="secondary-btn" data-close="eventModal">キャンセル</button>
+        <button type="submit" class="primary-btn">保存</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 種別管理モーダル -->
+<div id="categoryModal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>種別を管理</h2>
+      <button class="close-btn" data-close="categoryModal">×</button>
+    </div>
+    <div id="categoryList" class="category-list"></div>
+
+    <div class="add-category-form">
+      <label>新しい種別を追加</label>
+      <div class="add-category-row">
+        <input type="color" id="newCategoryColor" value="#0891b2">
+        <input type="text" id="newCategoryName" placeholder="例：セミナー登壇">
+        <button type="button" id="btnAddCategory" class="primary-btn">追加</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
