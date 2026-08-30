@@ -259,12 +259,13 @@
     return `${range} 終日`;
   }
 
-  // Compact label for tiny month-view pills.
-  function monthPillLabel(ev, dateKey) {
-    if (ev.startDate === ev.endDate) return ev.startTime ? ev.startTime + " " : "";
-    if (dateKey === ev.startDate) return "▶ ";
-    if (dateKey === ev.endDate) return "◀ ";
-    return "─ ";
+  // Compact decoration for tiny month-view pills: a leading/trailing marker
+  // showing whether this day is the start, end, or a middle day of a multi-day event.
+  function monthPillDecoration(ev, dateKey) {
+    if (ev.startDate === ev.endDate) return { prefix: ev.startTime ? ev.startTime + " " : "", suffix: "" };
+    if (dateKey === ev.startDate) return { prefix: "▶ ", suffix: "" };
+    if (dateKey === ev.endDate) return { prefix: "◀ ", suffix: "" };
+    return { prefix: "─ ", suffix: " ─" };
   }
 
   function renderMonthView() {
@@ -292,8 +293,8 @@
       const maxShow = 3;
       let eventsHtml = "";
       dayEvents.slice(0, maxShow).forEach((ev) => {
-        const timeLabel = monthPillLabel(ev, dateKey);
-        eventsHtml += `<div class="event-pill" style="background-color:${getCategoryColor(ev.category)}">${timeLabel}${escapeHtml(ev.title)}</div>`;
+        const { prefix, suffix } = monthPillDecoration(ev, dateKey);
+        eventsHtml += `<div class="event-pill" style="background-color:${getCategoryColor(ev.category)}">${prefix}${escapeHtml(ev.title)}${suffix}</div>`;
       });
       if (dayEvents.length > maxShow) {
         eventsHtml += `<div class="more-label">他 ${dayEvents.length - maxShow} 件</div>`;
