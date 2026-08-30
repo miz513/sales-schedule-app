@@ -566,6 +566,11 @@
 
   function setView(view) {
     state.view = view;
+    if (view === "week") {
+      // Jump to the selected day's week, or today's week if nothing is selected,
+      // rather than wherever month-browsing happened to leave the cursor.
+      state.cursor = state.selectedDateKey ? new Date(state.selectedDateKey + "T00:00:00") : startOfDay(new Date());
+    }
     btnMonthView.classList.toggle("active", view === "month");
     btnWeekView.classList.toggle("active", view === "week");
     render();
