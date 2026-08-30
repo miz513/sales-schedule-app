@@ -99,7 +99,6 @@ html, body {
 .period-label {
   font-size: 16px;
   font-weight: 600;
-  margin-left: 8px;
   min-width: 140px;
 }
 
@@ -121,16 +120,6 @@ html, body {
   color: var(--text);
 }
 .icon-btn:hover { background: #f0f2f5; }
-
-.today-btn {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  border-radius: 6px;
-  padding: 6px 12px;
-  cursor: pointer;
-  font-weight: 600;
-}
-.today-btn:hover { background: #f0f2f5; }
 
 .view-toggle {
   display: flex;
@@ -809,7 +798,7 @@ html, body {
   .topbar-right .primary-btn { flex: 1; }
 
   .icon-btn { width: 40px; height: 40px; font-size: 16px; }
-  .today-btn, .view-btn, .primary-btn, .secondary-btn, .danger-btn {
+  .view-btn, .primary-btn, .secondary-btn, .danger-btn {
     min-height: 40px;
   }
 

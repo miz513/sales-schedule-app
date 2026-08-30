@@ -163,9 +163,6 @@
   const mainArea = document.getElementById("mainArea");
   const periodLabel = document.getElementById("periodLabel");
 
-  const btnPrev = document.getElementById("btnPrev");
-  const btnNext = document.getElementById("btnNext");
-  const btnToday = document.getElementById("btnToday");
   const btnMonthView = document.getElementById("btnMonthView");
   const btnWeekView = document.getElementById("btnWeekView");
   const btnNewEvent = document.getElementById("btnNewEvent");
@@ -382,6 +379,7 @@
 
     if (state.selectedDateKey !== dateKey) {
       state.selectedDateKey = dateKey;
+      state.cursor = date; // so switching to week view shows the week containing the selected day
       if (state.view === "month") renderMonthView();
     }
 
@@ -565,14 +563,6 @@
     render();
     playNavAnimation(direction);
   }
-
-  btnPrev.addEventListener("click", () => navigate("prev"));
-  btnNext.addEventListener("click", () => navigate("next"));
-
-  btnToday.addEventListener("click", () => {
-    state.cursor = startOfDay(new Date());
-    render();
-  });
 
   function setView(view) {
     state.view = view;
