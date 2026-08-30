@@ -295,31 +295,32 @@ html, body {
   padding-left: 2px;
 }
 
-/* ---- Week view ---- */
+/* ---- Week view: days stacked vertically ---- */
 .week-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: 1fr;
   gap: 10px;
 }
 .week-day-col {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
-  min-height: 480px;
-  padding: 8px;
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
-  cursor: pointer;
 }
 .week-day-col.today { background: var(--today-bg); border-color: #93c5fd; }
 .week-day-header {
-  text-align: center;
-  padding-bottom: 6px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  text-align: left;
+  padding-bottom: 8px;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 .week-day-header .dow {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--text-muted);
   font-weight: 700;
 }
@@ -333,9 +334,10 @@ html, body {
   background: #f8fafc;
   border-left: 3px solid var(--primary);
   border-radius: 4px;
-  padding: 6px 8px;
-  margin-bottom: 6px;
-  font-size: 12px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  cursor: pointer;
 }
 .week-event-card .wt {
   font-weight: 700;
@@ -346,26 +348,25 @@ html, body {
   font-weight: 700;
   margin: 2px 0;
 }
-.week-event-card .wcust {
+.week-event-card .wcust,
+.week-event-card .wplace {
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 .week-event-card .wnote {
   color: var(--text-muted);
-  font-size: 11px;
-  margin-top: 3px;
+  font-size: 12px;
+  margin-top: 4px;
   white-space: pre-wrap;
-  max-height: 3.6em;
-  overflow: hidden;
 }
 
 .week-add-btn {
-  margin-top: auto;
+  margin-top: 4px;
   border: 1px dashed var(--border);
   background: none;
   border-radius: 6px;
-  padding: 6px;
-  font-size: 11px;
+  padding: 8px;
+  font-size: 12px;
   color: var(--text-muted);
   cursor: pointer;
 }
@@ -373,9 +374,10 @@ html, body {
 
 .empty-hint {
   color: var(--text-muted);
-  font-size: 11px;
-  text-align: center;
-  margin-top: 20px;
+  font-size: 12px;
+  text-align: left;
+  margin-top: 0;
+  padding: 2px 0;
 }
 
 /* ---------- Modal ---------- */
@@ -407,6 +409,39 @@ html, body {
 .modal-header h2 {
   font-size: 17px;
   margin: 0;
+}
+
+/* Modal variant with a fixed header/footer and a scrollable body in between,
+   so action buttons (e.g. Save) never require scrolling to reach. */
+.modal.modal-scrollable {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+.modal.modal-scrollable .modal-header {
+  padding: 20px 24px 14px;
+  margin-bottom: 0;
+  flex-shrink: 0;
+}
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.modal-body {
+  overflow-y: auto;
+  padding: 6px 24px 4px;
+  flex: 1;
+  min-height: 0;
+}
+.modal.modal-scrollable .form-actions {
+  padding: 14px 24px;
+  margin: 0;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  flex-shrink: 0;
 }
 .close-btn {
   background: none;
@@ -621,7 +656,6 @@ html, body {
 }
 
 @media (max-width: 900px) {
-  .week-grid { grid-template-columns: repeat(7, minmax(140px, 1fr)); overflow-x: auto; }
   .month-grid, .weekday-header { grid-template-columns: repeat(7, minmax(90px, 1fr)); }
 }
 
@@ -671,22 +705,6 @@ html, body {
   .event-pill { font-size: 8px; padding: 1px 3px; line-height: 1.3; }
   .more-label { font-size: 7px; }
 
-  /* Week view: stack days vertically instead of 7 cramped side-by-side columns */
-  .week-grid { grid-template-columns: 1fr; gap: 8px; }
-  .week-day-col { min-height: 0; padding: 10px 12px; }
-  .week-day-header {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    text-align: left;
-    padding-bottom: 8px;
-    margin-bottom: 8px;
-  }
-  .week-day-header .dow { font-size: 13px; }
-  .week-day-header .dnum { font-size: 17px; }
-  .empty-hint { margin-top: 0; text-align: left; padding: 4px 0; }
-  .week-add-btn { margin-top: 8px; }
-
   .modal-overlay { align-items: flex-end; }
   .modal {
     width: 100%;
@@ -695,6 +713,10 @@ html, body {
     border-radius: 16px 16px 0 0;
     padding: 16px 16px 20px;
   }
+  .modal.modal-scrollable { padding: 0; }
+  .modal.modal-scrollable .modal-header { padding: 16px 16px 10px; }
+  .modal-body { padding: 4px 16px 2px; }
+  .modal.modal-scrollable .form-actions { padding: 12px 16px; }
   .form-row.two-col { grid-template-columns: 1fr; gap: 10px; }
 
   .menu-dropdown { min-width: 180px; }

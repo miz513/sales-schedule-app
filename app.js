@@ -160,7 +160,6 @@
   const eventCustomerInput = document.getElementById("eventCustomer");
   const eventPlaceInput = document.getElementById("eventPlace");
   const eventNotesInput = document.getElementById("eventNotes");
-  const eventFollowupInput = document.getElementById("eventFollowup");
   const btnDeleteEvent = document.getElementById("btnDeleteEvent");
 
   // ---------- Rendering ----------
@@ -269,6 +268,7 @@
               <div class="wt">${timeRange} ・ ${escapeHtml(ev.category)}</div>
               <div class="wtitle">${escapeHtml(ev.title)}</div>
               ${ev.customer ? `<div class="wcust">${escapeHtml(ev.customer)}</div>` : ""}
+              ${ev.place ? `<div class="wplace">${escapeHtml(ev.place)}</div>` : ""}
               ${noteSnippet ? `<div class="wnote">${noteSnippet}</div>` : ""}
             </div>`;
         });
@@ -354,7 +354,6 @@
       eventCustomerInput.value = ev.customer || "";
       eventPlaceInput.value = ev.place || "";
       eventNotesInput.value = ev.notes || "";
-      eventFollowupInput.value = ev.followup || "";
       btnDeleteEvent.classList.remove("hidden");
     } else {
       eventModalTitle.textContent = "予定を追加";
@@ -380,7 +379,6 @@
       customer: eventCustomerInput.value.trim(),
       place: eventPlaceInput.value.trim(),
       notes: eventNotesInput.value,
-      followup: eventFollowupInput.value.trim(),
     };
 
     if (!data.title || !data.date) return;
