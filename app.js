@@ -27,6 +27,7 @@
     cursor: startOfDay(new Date()), // reference date for current period
     activeCategories: new Set(), // empty = show all; non-empty = show only these
     dayModalDate: null, // Date currently shown in day modal
+    selectedDateKey: null, // last day cell the user tapped, highlighted distinctly from "today"
   };
 
   // ---------- Persistence ----------
@@ -288,6 +289,7 @@
       const dateKey = toDateKey(d);
       const inMonth = d.getMonth() === monthStart.getMonth();
       const isToday = isSameDay(d, today);
+      const isSelected = dateKey === state.selectedDateKey;
       const dow = d.getDay();
       const dayNumCls = dow === 0 ? "sun" : dow === 6 ? "sat" : "";
 
@@ -303,7 +305,7 @@
       }
 
       html += `
-        <div class="day-cell ${inMonth ? "" : "other-month"} ${isToday ? "today" : ""}" data-date="${dateKey}">
+        <div class="day-cell ${inMonth ? "" : "other-month"} ${isToday ? "today" : ""} ${isSelected ? "selected" : ""}" data-date="${dateKey}">
           <div class="day-number ${dayNumCls}">${d.getDate()}</div>
           <div class="day-events">${eventsHtml}</div>
         </div>`;
@@ -377,6 +379,12 @@
   function openDayModal(date) {
     state.dayModalDate = date;
     const dateKey = toDateKey(date);
+
+    if (state.selectedDateKey !== dateKey) {
+      state.selectedDateKey = dateKey;
+      if (state.view === "month") renderMonthView();
+    }
+
     dayModalTitle.textContent = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日（${WEEKDAY_LABELS[date.getDay()]}）の予定`;
 
     const dayEvents = getEventsForDate(dateKey);

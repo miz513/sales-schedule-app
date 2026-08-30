@@ -342,6 +342,11 @@ html, body {
 .day-cell:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
 .day-cell.other-month { opacity: 0.45; }
 .day-cell.today { background: var(--today-bg); border-color: #93c5fd; }
+.day-cell.selected {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 2px #f59e0b inset;
+}
+.day-cell.selected:hover { box-shadow: 0 0 0 2px #f59e0b inset, 0 2px 8px rgba(0,0,0,0.08); }
 
 .day-number {
   font-size: 12px;
