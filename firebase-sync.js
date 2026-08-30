@@ -31,12 +31,34 @@ const btnSignIn = document.getElementById("btnSignIn");
 const btnSignOut = document.getElementById("btnSignOut");
 const syncStatus = document.getElementById("syncStatus");
 
+const authGate = document.getElementById("authGate");
+const authGateLoading = document.getElementById("authGateLoading");
+const authGatePrompt = document.getElementById("authGatePrompt");
+const authGateError = document.getElementById("authGateError");
+const btnGateSignIn = document.getElementById("btnGateSignIn");
+
 let currentUser = null;
 let saveTimer = null;
 let applyingRemoteData = false;
 
 function updateStatus(text) {
   if (syncStatus) syncStatus.textContent = text;
+}
+
+function showGateLoggedOut() {
+  authGate.classList.remove("hidden");
+  authGateLoading.classList.add("hidden");
+  authGatePrompt.classList.remove("hidden");
+}
+
+async function doSignIn() {
+  authGateError.textContent = "";
+  try {
+    await signInWithPopup(auth, provider);
+  } catch (e) {
+    console.error(e);
+    authGateError.textContent = "ログインに失敗しました: " + (e.code || e.message || e);
+  }
 }
 
 function userDocRef(uid) {
@@ -75,6 +97,7 @@ window.ScheduleApp.onChange(scheduleSave);
 onAuthStateChanged(auth, async (user) => {
   currentUser = user;
   if (user) {
+    authGate.classList.add("hidden");
     btnSignIn.classList.add("hidden");
     btnSignOut.classList.remove("hidden");
     updateStatus(`読み込み中… (${user.email})`);
@@ -86,20 +109,15 @@ onAuthStateChanged(auth, async (user) => {
       updateStatus(`読み込みエラー: ${e.code || e.message || e}`);
     }
   } else {
+    showGateLoggedOut();
     btnSignIn.classList.remove("hidden");
     btnSignOut.classList.add("hidden");
     updateStatus("");
   }
 });
 
-btnSignIn.addEventListener("click", async () => {
-  try {
-    await signInWithPopup(auth, provider);
-  } catch (e) {
-    console.error(e);
-    alert("ログインに失敗しました。" + (e && (e.code || e.message) ? e.code || e.message : ""));
-  }
-});
+btnSignIn.addEventListener("click", doSignIn);
+btnGateSignIn.addEventListener("click", doSignIn);
 
 btnSignOut.addEventListener("click", async () => {
   await signOut(auth);
