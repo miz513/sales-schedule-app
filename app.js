@@ -155,10 +155,11 @@
   const eventDateInput = document.getElementById("eventDate");
   const eventStartInput = document.getElementById("eventStart");
   const eventEndInput = document.getElementById("eventEnd");
+  const eventAllDayInput = document.getElementById("eventAllDay");
+  const startField = document.getElementById("startField");
+  const endField = document.getElementById("endField");
   const eventCategoryInput = document.getElementById("eventCategory");
   const eventTitleInput = document.getElementById("eventTitle");
-  const eventCustomerInput = document.getElementById("eventCustomer");
-  const eventPlaceInput = document.getElementById("eventPlace");
   const eventNotesInput = document.getElementById("eventNotes");
   const btnDeleteEvent = document.getElementById("btnDeleteEvent");
 
@@ -341,6 +342,20 @@
 
   // ---------- Event modal ----------
 
+  function syncAllDayUI() {
+    const isAllDay = eventAllDayInput.checked;
+    eventStartInput.disabled = isAllDay;
+    eventEndInput.disabled = isAllDay;
+    startField.classList.toggle("hidden", isAllDay);
+    endField.classList.toggle("hidden", isAllDay);
+    if (isAllDay) {
+      eventStartInput.value = "";
+      eventEndInput.value = "";
+    }
+  }
+
+  eventAllDayInput.addEventListener("change", syncAllDayUI);
+
   function openEventModal(ev, presetDateKey) {
     eventForm.reset();
     if (ev) {
@@ -349,19 +364,20 @@
       eventDateInput.value = ev.date;
       eventStartInput.value = ev.start || "";
       eventEndInput.value = ev.end || "";
+      eventAllDayInput.checked = !ev.start && !ev.end;
       renderCategorySelectOptions(ev.category);
       eventTitleInput.value = ev.title;
-      eventCustomerInput.value = ev.customer || "";
-      eventPlaceInput.value = ev.place || "";
       eventNotesInput.value = ev.notes || "";
       btnDeleteEvent.classList.remove("hidden");
     } else {
       eventModalTitle.textContent = "予定を追加";
       eventIdInput.value = "";
       eventDateInput.value = presetDateKey || toDateKey(new Date());
+      eventAllDayInput.checked = false;
       renderCategorySelectOptions(categories[0] ? categories[0].name : undefined);
       btnDeleteEvent.classList.add("hidden");
     }
+    syncAllDayUI();
     eventModal.classList.remove("hidden");
     eventTitleInput.focus();
   }
@@ -370,14 +386,13 @@
     e.preventDefault();
 
     const id = eventIdInput.value;
+    const isAllDay = eventAllDayInput.checked;
     const data = {
       date: eventDateInput.value,
-      start: eventStartInput.value,
-      end: eventEndInput.value,
+      start: isAllDay ? "" : eventStartInput.value,
+      end: isAllDay ? "" : eventEndInput.value,
       category: eventCategoryInput.value,
       title: eventTitleInput.value.trim(),
-      customer: eventCustomerInput.value.trim(),
-      place: eventPlaceInput.value.trim(),
       notes: eventNotesInput.value,
     };
 

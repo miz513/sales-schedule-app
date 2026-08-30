@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>スケジュール管理</title>
-<link rel="stylesheet" href="style.css?v=7">
+<link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
 <div class="app">
@@ -74,14 +74,21 @@
             <label>日付</label>
             <input type="date" id="eventDate" required>
           </div>
-          <div class="dt-field dt-time">
+          <div class="dt-field dt-time" id="startField">
             <label>開始</label>
             <input type="time" id="eventStart">
           </div>
-          <div class="dt-field dt-time">
+          <div class="dt-field dt-time" id="endField">
             <label>終了</label>
             <input type="time" id="eventEnd">
           </div>
+        </div>
+
+        <div class="form-row compact-row">
+          <label class="allday-check">
+            <input type="checkbox" id="eventAllDay">
+            終日
+          </label>
         </div>
 
         <div class="form-row">
@@ -95,17 +102,6 @@
         <div class="form-row">
           <label>タイトル</label>
           <input type="text" id="eventTitle" placeholder="例：新規提案商談" required>
-        </div>
-
-        <div class="form-row two-col">
-          <div>
-            <label>顧客名・会社名</label>
-            <input type="text" id="eventCustomer" placeholder="例：株式会社〇〇 山田様">
-          </div>
-          <div>
-            <label>場所</label>
-            <input type="text" id="eventPlace" placeholder="例：先方オフィス／オンライン">
-          </div>
         </div>
 
         <div class="form-row">
@@ -144,6 +140,6 @@
   </div>
 </div>
 
-<script src="app.js?v=7"></script>
+<script src="app.js?v=8"></script>
 </body>
 </html>
