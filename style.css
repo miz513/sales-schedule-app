@@ -257,6 +257,11 @@ html, body {
   flex-wrap: wrap;
 }
 
+.filter-bar #btnManageCategories {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
 /* ---------- Main area ---------- */
 .main-area {
   flex: 1;
@@ -682,7 +687,7 @@ html, body {
   border-radius: 6px;
   padding: 8px 10px;
   background: var(--surface);
-  touch-action: pan-y;
+  touch-action: none; /* JS drives both scrolling and drag-reorder for this row */
 }
 .category-row .cat-name {
   flex: 1;
@@ -811,10 +816,12 @@ html, body {
     flex-wrap: nowrap;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    width: 100%;
+    flex: 1;
+    min-width: 0;
     padding-bottom: 2px;
   }
   .chip { flex: 0 0 auto; padding: 7px 12px 7px 10px; }
+  #btnManageCategories { flex-shrink: 0; }
 
   .main-area { padding: 8px 6px 32px; }
 

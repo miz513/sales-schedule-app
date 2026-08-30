@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>スケジュール管理</title>
-<link rel="stylesheet" href="style.css?v=18">
+<link rel="stylesheet" href="style.css?v=19">
 </head>
 <body>
 
@@ -40,7 +40,6 @@
         <button id="btnSignIn">Googleでログイン（同期）</button>
         <button id="btnSignOut" class="hidden">ログアウト</button>
         <div id="syncStatus" class="sync-status"></div>
-        <button id="btnManageCategories">種別を管理</button>
       </div>
     </div>
   </header>
@@ -48,6 +47,7 @@
   <div class="filter-bar">
     <span class="filter-label">絞り込み:</span>
     <div id="categoryChips" class="chips-container"></div>
+    <button id="btnManageCategories" class="icon-btn" title="種別を管理">⚙</button>
   </div>
 
   <main id="mainArea" class="main-area">
@@ -158,7 +158,7 @@
   </div>
 </div>
 
-<script src="app.js?v=18"></script>
+<script src="app.js?v=19"></script>
 <script type="module" src="firebase-sync.js?v=3"></script>
 </body>
 </html>

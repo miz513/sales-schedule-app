@@ -808,15 +808,28 @@
       const startX = e.clientX;
       const startY = e.clientY;
       let dragging = false;
+      let scrolling = false;
+      let lastY = startY;
       let placeholder = null;
       let grabOffsetY = 0;
       let longPressTimer = null;
 
       function onMove(ev) {
+        if (scrolling) {
+          // touch-action is disabled on the row so drags are never fought by native
+          // scrolling; once we know this gesture is a scroll, drive it manually instead.
+          categoryList.scrollTop -= ev.clientY - lastY;
+          lastY = ev.clientY;
+          return;
+        }
         if (!dragging) {
           const dx = ev.clientX - startX;
           const dy = ev.clientY - startY;
-          if (Math.sqrt(dx * dx + dy * dy) > MOVE_CANCEL_PX) cleanup();
+          if (Math.sqrt(dx * dx + dy * dy) > MOVE_CANCEL_PX) {
+            scrolling = true;
+            clearTimeout(longPressTimer);
+            lastY = ev.clientY;
+          }
           return;
         }
         ev.preventDefault();
