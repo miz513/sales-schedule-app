@@ -242,6 +242,13 @@
     return `${parseInt(m, 10)}/${parseInt(d, 10)}`;
   }
 
+  // Judges by date first, then by time only when both sides fall on the same day.
+  function isEndBeforeStart(startDate, startTime, endDate, endTime) {
+    if (endDate < startDate) return true;
+    if (endDate === startDate && startTime && endTime && endTime < startTime) return true;
+    return false;
+  }
+
   // Full-detail time label (day modal, week cards): describes how the event
   // relates to this specific date when it spans multiple days.
   function eventTimeLabel(ev, dateKey) {
@@ -475,15 +482,21 @@
 
     const id = eventIdInput.value;
     const isAllDay = eventAllDayInput.checked;
-    let startDate = eventStartDateInput.value;
-    let endDate = eventEndDateInput.value;
-    if (endDate < startDate) endDate = startDate;
+    const startDate = eventStartDateInput.value;
+    const endDate = eventEndDateInput.value;
+    const startTime = isAllDay ? "" : eventStartTimeInput.value;
+    const endTime = isAllDay ? "" : eventEndTimeInput.value;
+
+    if (isEndBeforeStart(startDate, startTime, endDate, endTime)) {
+      alert("終了日時が開始日時より前になっています。日付・時刻を確認してください。");
+      return;
+    }
 
     const data = {
       startDate,
       endDate,
-      startTime: isAllDay ? "" : eventStartTimeInput.value,
-      endTime: isAllDay ? "" : eventEndTimeInput.value,
+      startTime,
+      endTime,
       category: eventCategoryInput.value,
       title: eventTitleInput.value.trim(),
       notes: eventNotesInput.value,
