@@ -36,10 +36,22 @@ const authGateLoading = document.getElementById("authGateLoading");
 const authGatePrompt = document.getElementById("authGatePrompt");
 const authGateError = document.getElementById("authGateError");
 const btnGateSignIn = document.getElementById("btnGateSignIn");
+const inAppBrowserWarning = document.getElementById("inAppBrowserWarning");
 
 let currentUser = null;
 let saveTimer = null;
 let applyingRemoteData = false;
+
+// LINE, Instagram, Facebook, X/Twitter, and WeChat all embed a restricted WebView
+// that Google blocks (or that lacks the storage) for OAuth sign-in.
+function isInAppBrowser() {
+  const ua = navigator.userAgent || "";
+  return /Line\/|Instagram|FBAN|FBAV|Twitter|MicroMessenger/i.test(ua);
+}
+
+if (isInAppBrowser() && inAppBrowserWarning) {
+  inAppBrowserWarning.classList.remove("hidden");
+}
 
 function updateStatus(text) {
   if (syncStatus) syncStatus.textContent = text;
@@ -53,6 +65,11 @@ function showGateLoggedOut() {
 
 async function doSignIn() {
   authGateError.textContent = "";
+  if (isInAppBrowser()) {
+    authGateError.textContent =
+      "このアプリ内ブラウザではログインできません。上の案内の通り、Safari/Chromeなど標準のブラウザで開き直してください。";
+    return;
+  }
   try {
     await signInWithPopup(auth, provider);
   } catch (e) {

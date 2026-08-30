@@ -63,6 +63,23 @@ html, body {
 }
 .auth-gate-error:empty { display: none; }
 
+.in-app-warning {
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  color: #9a3412;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: left;
+  margin-bottom: 20px;
+}
+.in-app-warning strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+
 .app {
   display: flex;
   flex-direction: column;
