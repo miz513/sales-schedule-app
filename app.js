@@ -206,6 +206,8 @@
   const endTimeField = document.getElementById("endTimeField");
   const repeatRow = document.getElementById("repeatRow");
   const eventRepeatWeeklyInput = document.getElementById("eventRepeatWeekly");
+  const repeatDaysRow = document.getElementById("repeatDaysRow");
+  const repeatWeekdayPicker = document.getElementById("repeatWeekdayPicker");
   const repeatUntilRow = document.getElementById("repeatUntilRow");
   const eventRepeatUntilInput = document.getElementById("eventRepeatUntil");
   const eventCategoryInput = document.getElementById("eventCategory");
@@ -479,6 +481,7 @@
       // Editing only ever touches this single occurrence, so the repeat
       // setup (only meaningful when first creating a series) is hidden.
       repeatRow.classList.add("hidden");
+      repeatDaysRow.classList.add("hidden");
       repeatUntilRow.classList.add("hidden");
     } else {
       eventModalTitle.textContent = "予定を追加";
@@ -491,6 +494,7 @@
       btnDeleteEvent.classList.add("hidden");
       repeatRow.classList.remove("hidden");
       eventRepeatWeeklyInput.checked = false;
+      repeatDaysRow.classList.add("hidden");
       repeatUntilRow.classList.add("hidden");
       eventRepeatUntilInput.value = "";
     }
@@ -500,7 +504,16 @@
   }
 
   eventRepeatWeeklyInput.addEventListener("change", () => {
-    repeatUntilRow.classList.toggle("hidden", !eventRepeatWeeklyInput.checked);
+    const on = eventRepeatWeeklyInput.checked;
+    repeatDaysRow.classList.toggle("hidden", !on);
+    repeatUntilRow.classList.toggle("hidden", !on);
+    if (on) {
+      // Default to the weekday of the chosen start date; the user can add more.
+      const startDow = new Date(eventStartDateInput.value + "T00:00:00").getDay();
+      repeatWeekdayPicker.querySelectorAll("input[type=checkbox]").forEach((cb) => {
+        cb.checked = Number(cb.value) === startDow;
+      });
+    }
   });
 
   eventForm.addEventListener("submit", (e) => {
@@ -539,19 +552,31 @@
         alert("繰り返しの終了日を、開始日以降の日付で指定してください。");
         return;
       }
-      const MAX_OCCURRENCES = 104; // about 2 years of weekly occurrences
+      const selectedWeekdays = Array.from(repeatWeekdayPicker.querySelectorAll("input:checked")).map((cb) =>
+        Number(cb.value)
+      );
+      if (selectedWeekdays.length === 0) {
+        alert("繰り返す曜日を1つ以上選択してください。");
+        return;
+      }
+      const MAX_OCCURRENCES = 104; // about 2 years of weekly occurrences at one day/week
       const spanDays = daysBetweenDateKeys(data.startDate, data.endDate);
-      const weeks = Math.floor(daysBetweenDateKeys(data.startDate, until) / 7) + 1;
-      if (weeks > MAX_OCCURRENCES) {
-        alert(`繰り返しの回数が多すぎます(最大${MAX_OCCURRENCES}回、約2年分)。終了日を早めてください。`);
+      const occurrenceDates = [];
+      let cursor = data.startDate;
+      while (cursor <= until && occurrenceDates.length <= MAX_OCCURRENCES) {
+        const dow = new Date(cursor + "T00:00:00").getDay();
+        if (selectedWeekdays.includes(dow)) occurrenceDates.push(cursor);
+        cursor = addDaysToDateKey(cursor, 1);
+      }
+      if (occurrenceDates.length > MAX_OCCURRENCES) {
+        alert(`繰り返しの回数が多すぎます(最大${MAX_OCCURRENCES}回)。終了日を早めるか、曜日を減らしてください。`);
         return;
       }
       const seriesId = uid();
-      for (let i = 0; i < weeks; i++) {
-        const occStart = addDaysToDateKey(data.startDate, i * 7);
+      occurrenceDates.forEach((occStart) => {
         const occEnd = addDaysToDateKey(occStart, spanDays);
         events.push({ id: uid(), createdAt: Date.now(), seriesId, ...data, startDate: occStart, endDate: occEnd });
-      }
+      });
     } else {
       events.push({ id: uid(), createdAt: Date.now(), ...data });
     }

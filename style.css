@@ -622,6 +622,32 @@ html, body {
   cursor: pointer;
 }
 
+.weekday-picker {
+  display: flex;
+  gap: 6px;
+}
+.wd-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0;
+}
+.wd-chip input { display: none; }
+.wd-chip:has(input:checked) {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+  font-weight: 700;
+}
+
 .form-row textarea {
   resize: vertical;
   line-height: 1.5;

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>スケジュール管理</title>
-<link rel="stylesheet" href="style.css?v=25">
+<link rel="stylesheet" href="style.css?v=26">
 </head>
 <body>
 
@@ -123,6 +123,18 @@
             毎週繰り返す
           </label>
         </div>
+        <div class="form-row hidden" id="repeatDaysRow">
+          <label>繰り返す曜日</label>
+          <div class="weekday-picker" id="repeatWeekdayPicker">
+            <label class="wd-chip"><input type="checkbox" value="0">日</label>
+            <label class="wd-chip"><input type="checkbox" value="1">月</label>
+            <label class="wd-chip"><input type="checkbox" value="2">火</label>
+            <label class="wd-chip"><input type="checkbox" value="3">水</label>
+            <label class="wd-chip"><input type="checkbox" value="4">木</label>
+            <label class="wd-chip"><input type="checkbox" value="5">金</label>
+            <label class="wd-chip"><input type="checkbox" value="6">土</label>
+          </div>
+        </div>
         <div class="form-row hidden" id="repeatUntilRow">
           <label>繰り返しの終了日</label>
           <input type="date" id="eventRepeatUntil">
@@ -178,7 +190,7 @@
   </div>
 </div>
 
-<script src="app.js?v=25"></script>
+<script src="app.js?v=26"></script>
 <script type="module" src="firebase-sync.js?v=4"></script>
 </body>
 </html>
