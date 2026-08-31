@@ -136,6 +136,16 @@
     return nd;
   }
 
+  function addDaysToDateKey(dateKey, n) {
+    return toDateKey(addDays(new Date(dateKey + "T00:00:00"), n));
+  }
+
+  function daysBetweenDateKeys(a, b) {
+    const da = new Date(a + "T00:00:00");
+    const db = new Date(b + "T00:00:00");
+    return Math.round((db - da) / 86400000);
+  }
+
   function addMonths(d, n) {
     const nd = new Date(d);
     nd.setDate(1);
@@ -194,6 +204,10 @@
   const eventAllDayInput = document.getElementById("eventAllDay");
   const startTimeField = document.getElementById("startTimeField");
   const endTimeField = document.getElementById("endTimeField");
+  const repeatRow = document.getElementById("repeatRow");
+  const eventRepeatWeeklyInput = document.getElementById("eventRepeatWeekly");
+  const repeatUntilRow = document.getElementById("repeatUntilRow");
+  const eventRepeatUntilInput = document.getElementById("eventRepeatUntil");
   const eventCategoryInput = document.getElementById("eventCategory");
   const eventTitleInput = document.getElementById("eventTitle");
   const eventNotesInput = document.getElementById("eventNotes");
@@ -462,6 +476,10 @@
       eventTitleInput.value = ev.title;
       eventNotesInput.value = ev.notes || "";
       btnDeleteEvent.classList.remove("hidden");
+      // Editing only ever touches this single occurrence, so the repeat
+      // setup (only meaningful when first creating a series) is hidden.
+      repeatRow.classList.add("hidden");
+      repeatUntilRow.classList.add("hidden");
     } else {
       eventModalTitle.textContent = "予定を追加";
       eventIdInput.value = "";
@@ -471,11 +489,19 @@
       eventAllDayInput.checked = false;
       renderCategorySelectOptions(categories[0] ? categories[0].name : undefined);
       btnDeleteEvent.classList.add("hidden");
+      repeatRow.classList.remove("hidden");
+      eventRepeatWeeklyInput.checked = false;
+      repeatUntilRow.classList.add("hidden");
+      eventRepeatUntilInput.value = "";
     }
     syncAllDayUI();
     eventModal.classList.remove("hidden");
     eventTitleInput.focus();
   }
+
+  eventRepeatWeeklyInput.addEventListener("change", () => {
+    repeatUntilRow.classList.toggle("hidden", !eventRepeatWeeklyInput.checked);
+  });
 
   eventForm.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -507,6 +533,25 @@
     if (id) {
       const idx = events.findIndex((ev) => ev.id === id);
       if (idx !== -1) events[idx] = { ...events[idx], ...data };
+    } else if (eventRepeatWeeklyInput.checked) {
+      const until = eventRepeatUntilInput.value;
+      if (!until || until < data.startDate) {
+        alert("繰り返しの終了日を、開始日以降の日付で指定してください。");
+        return;
+      }
+      const MAX_OCCURRENCES = 104; // about 2 years of weekly occurrences
+      const spanDays = daysBetweenDateKeys(data.startDate, data.endDate);
+      const weeks = Math.floor(daysBetweenDateKeys(data.startDate, until) / 7) + 1;
+      if (weeks > MAX_OCCURRENCES) {
+        alert(`繰り返しの回数が多すぎます(最大${MAX_OCCURRENCES}回、約2年分)。終了日を早めてください。`);
+        return;
+      }
+      const seriesId = uid();
+      for (let i = 0; i < weeks; i++) {
+        const occStart = addDaysToDateKey(data.startDate, i * 7);
+        const occEnd = addDaysToDateKey(occStart, spanDays);
+        events.push({ id: uid(), createdAt: Date.now(), seriesId, ...data, startDate: occStart, endDate: occEnd });
+      }
     } else {
       events.push({ id: uid(), createdAt: Date.now(), ...data });
     }
@@ -520,8 +565,23 @@
   btnDeleteEvent.addEventListener("click", () => {
     const id = eventIdInput.value;
     if (!id) return;
+    const ev = events.find((e) => e.id === id);
+    if (!ev) return;
     if (!confirm("この予定を削除しますか？メモの内容も削除されます。")) return;
-    events = events.filter((ev) => ev.id !== id);
+
+    if (ev.seriesId) {
+      const deleteFuture = confirm(
+        "この予定は毎週繰り返す予定の一部です。\n\nOK: この回以降のすべての回を削除\nキャンセル: この回だけ削除"
+      );
+      if (deleteFuture) {
+        events = events.filter((e) => !(e.seriesId === ev.seriesId && e.startDate >= ev.startDate));
+      } else {
+        events = events.filter((e) => e.id !== id);
+      }
+    } else {
+      events = events.filter((e) => e.id !== id);
+    }
+
     saveEvents();
     closeModal(eventModal);
     render();
