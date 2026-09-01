@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>スケジュール管理</title>
-<link rel="stylesheet" href="style.css?v=29">
+<link rel="stylesheet" href="style.css?v=30">
 </head>
 <body>
 
@@ -111,15 +111,12 @@
           </div>
         </div>
 
-        <div class="form-row compact-row">
+        <div class="form-row compact-row checkbox-row">
           <label class="allday-check">
             <input type="checkbox" id="eventAllDay">
             終日
           </label>
-        </div>
-
-        <div class="form-row compact-row" id="repeatRow">
-          <label class="allday-check">
+          <label class="allday-check" id="repeatRow">
             <input type="checkbox" id="eventRepeatWeekly">
             毎週繰り返す
           </label>
@@ -192,7 +189,7 @@
   </div>
 </div>
 
-<script src="app.js?v=29"></script>
+<script src="app.js?v=30"></script>
 <script type="module" src="firebase-sync.js?v=4"></script>
 <script>
   if ("serviceWorker" in navigator) {

@@ -182,6 +182,7 @@
   const categoryChips = document.getElementById("categoryChips");
 
   const categoryModal = document.getElementById("categoryModal");
+  const categoryModalBox = categoryModal.querySelector(".modal");
   const categoryList = document.getElementById("categoryList");
   const newCategoryName = document.getElementById("newCategoryName");
   const newCategoryColor = document.getElementById("newCategoryColor");
@@ -194,6 +195,7 @@
   const btnAddInDay = document.getElementById("btnAddInDay");
 
   const eventModal = document.getElementById("eventModal");
+  const eventModalBody = eventModal.querySelector(".modal-body");
   const eventModalTitle = document.getElementById("eventModalTitle");
   const eventForm = document.getElementById("eventForm");
   const eventIdInput = document.getElementById("eventId");
@@ -286,10 +288,15 @@
   // Compact decoration for tiny month-view pills: a leading/trailing marker
   // showing whether this day is the start, end, or a middle day of a multi-day event.
   function monthPillDecoration(ev, dateKey) {
-    if (ev.startDate === ev.endDate) return { prefix: ev.startTime ? ev.startTime + " " : "", suffix: "" };
-    if (dateKey === ev.startDate) return { prefix: "▶ ", suffix: "" };
-    if (dateKey === ev.endDate) return { prefix: "◀ ", suffix: "" };
-    return { prefix: "─ ", suffix: " ─" };
+    // isTime marks the prefix as a clock time (as opposed to a continuation
+    // arrow) so narrow screens can hide it and give the title the full pill
+    // width, since a title is more useful than an exact time at a glance.
+    if (ev.startDate === ev.endDate) {
+      return { prefix: ev.startTime ? ev.startTime + " " : "", suffix: "", isTime: true };
+    }
+    if (dateKey === ev.startDate) return { prefix: "▶ ", suffix: "", isTime: false };
+    if (dateKey === ev.endDate) return { prefix: "◀ ", suffix: "", isTime: false };
+    return { prefix: "─ ", suffix: " ─", isTime: false };
   }
 
   function renderMonthView() {
@@ -317,8 +324,9 @@
       const maxShow = 3;
       let eventsHtml = "";
       dayEvents.slice(0, maxShow).forEach((ev) => {
-        const { prefix, suffix } = monthPillDecoration(ev, dateKey);
-        eventsHtml += `<div class="event-pill" style="background-color:${getCategoryColor(ev.category)}">${prefix}${escapeHtml(ev.title)}${suffix}</div>`;
+        const { prefix, suffix, isTime } = monthPillDecoration(ev, dateKey);
+        const prefixHtml = isTime && prefix ? `<span class="pill-time">${prefix}</span>` : prefix;
+        eventsHtml += `<div class="event-pill" style="background-color:${getCategoryColor(ev.category)}">${prefixHtml}${escapeHtml(ev.title)}${suffix}</div>`;
       });
       if (dayEvents.length > maxShow) {
         eventsHtml += `<div class="more-label">他 ${dayEvents.length - maxShow} 件</div>`;
@@ -433,6 +441,7 @@
     }
 
     dayModal.classList.remove("hidden");
+    dayModalList.scrollTop = 0;
   }
 
   btnAddInDay.addEventListener("click", () => {
@@ -501,6 +510,7 @@
     }
     syncAllDayUI();
     eventModal.classList.remove("hidden");
+    eventModalBody.scrollTop = 0;
   }
 
   eventRepeatWeeklyInput.addEventListener("change", () => {
@@ -1115,6 +1125,8 @@
     renderCategoryListRows();
     newCategoryName.value = "";
     categoryModal.classList.remove("hidden");
+    categoryList.scrollTop = 0;
+    categoryModalBox.scrollTop = 0;
   });
 
   btnAddCategory.addEventListener("click", () => {
@@ -1137,6 +1149,8 @@
     renderCategoryListRows();
     newCategoryName.value = "";
     categoryModal.classList.remove("hidden");
+    categoryList.scrollTop = 0;
+    categoryModalBox.scrollTop = 0;
     newCategoryName.focus();
   });
 
