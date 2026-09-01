@@ -969,7 +969,6 @@
   function renderCategoryListRows() {
     categoryList.innerHTML = categories
       .map((c) => {
-        const count = events.filter((ev) => ev.category === c.name).length;
         if (editingCategoryName === c.name) {
           return `
             <div class="category-row editing" data-name="${escapeHtml(c.name)}">
@@ -984,7 +983,6 @@
             <span class="cat-handle" title="長押しでドラッグして並び替え">⠿</span>
             <span class="dot" style="background-color:${c.color}"></span>
             <span class="cat-name">${escapeHtml(c.name)}</span>
-            <span class="cat-count">${count}件</span>
             <button type="button" class="cat-edit" title="編集">✎</button>
             <button type="button" class="cat-delete" title="削除">×</button>
           </div>`;
