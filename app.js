@@ -501,7 +501,6 @@
     }
     syncAllDayUI();
     eventModal.classList.remove("hidden");
-    eventTitleInput.focus();
   }
 
   eventRepeatWeeklyInput.addEventListener("change", () => {
