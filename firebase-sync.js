@@ -7,7 +7,9 @@ import {
   onAuthStateChanged,
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 import {
-  getFirestore,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentSingleTabManager,
   doc,
   getDoc,
   setDoc,
@@ -24,7 +26,11 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
+// Persistent local cache: reads/writes keep working offline (e.g. visiting a
+// client with no signal) and sync automatically once the connection returns.
+const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({ tabManager: persistentSingleTabManager() }),
+});
 const provider = new GoogleAuthProvider();
 
 const btnSignIn = document.getElementById("btnSignIn");
@@ -97,11 +103,11 @@ async function pullOrPushInitial(user) {
 function scheduleSave() {
   if (!currentUser || applyingRemoteData) return;
   clearTimeout(saveTimer);
-  updateStatus(`同期中… (${currentUser.email})`);
+  updateStatus(navigator.onLine ? `同期中… (${currentUser.email})` : `オフライン・復帰時に自動同期 (${currentUser.email})`);
   saveTimer = setTimeout(async () => {
     try {
       await setDoc(userDocRef(currentUser.uid), window.ScheduleApp.getData());
-      updateStatus(`同期済み (${currentUser.email})`);
+      updateStatus(navigator.onLine ? `同期済み (${currentUser.email})` : `オフライン・復帰時に自動同期 (${currentUser.email})`);
     } catch (e) {
       console.error(e);
       updateStatus(`同期エラー: ${e.code || e.message || e}`);
@@ -131,6 +137,13 @@ onAuthStateChanged(auth, async (user) => {
     btnSignOut.classList.add("hidden");
     updateStatus("");
   }
+});
+
+window.addEventListener("online", () => {
+  if (currentUser) updateStatus(`同期済み (${currentUser.email})`);
+});
+window.addEventListener("offline", () => {
+  if (currentUser) updateStatus(`オフライン・復帰時に自動同期 (${currentUser.email})`);
 });
 
 btnSignIn.addEventListener("click", doSignIn);

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>スケジュール管理</title>
-<link rel="stylesheet" href="style.css?v=30">
+<link rel="stylesheet" href="style.css?v=31">
 </head>
 <body>
 
@@ -32,7 +32,7 @@
       <h1>スケジュール管理</h1>
     </div>
     <div class="topbar-center">
-      <span id="periodLabel" class="period-label"></span>
+      <span id="periodLabel" class="period-label" title="タップして今日に戻る"></span>
     </div>
     <div class="topbar-right">
       <div class="view-toggle">
@@ -45,6 +45,7 @@
         <button id="btnSignIn">Googleでログイン（同期）</button>
         <button id="btnSignOut" class="hidden">ログアウト</button>
         <div id="syncStatus" class="sync-status"></div>
+        <button id="btnMonthlySummary">月次集計</button>
       </div>
     </div>
   </header>
@@ -63,6 +64,11 @@
   <main id="mainArea" class="main-area">
     <!-- 月表示・週表示はJSで描画 -->
   </main>
+
+  <div id="undoToast" class="undo-toast hidden">
+    <span id="undoToastText"></span>
+    <button type="button" id="btnUndo">元に戻す</button>
+  </div>
 
 </div>
 
@@ -160,6 +166,7 @@
 
       <div class="form-actions">
         <button type="button" id="btnDeleteEvent" class="danger-btn hidden">削除</button>
+        <button type="button" id="btnDuplicateEvent" class="secondary-btn hidden">複製</button>
         <div class="spacer"></div>
         <button type="button" class="secondary-btn" data-close="eventModal">キャンセル</button>
         <button type="submit" class="primary-btn">保存</button>
@@ -189,8 +196,19 @@
   </div>
 </div>
 
-<script src="app.js?v=30"></script>
-<script type="module" src="firebase-sync.js?v=4"></script>
+<!-- 月次集計モーダル -->
+<div id="summaryModal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="summaryModalTitle">月次集計</h2>
+      <button class="close-btn" data-close="summaryModal">×</button>
+    </div>
+    <div id="summaryModalBody"></div>
+  </div>
+</div>
+
+<script src="app.js?v=31"></script>
+<script type="module" src="firebase-sync.js?v=5"></script>
 <script>
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js?v=1");

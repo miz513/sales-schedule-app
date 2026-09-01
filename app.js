@@ -172,6 +172,9 @@
 
   const mainArea = document.getElementById("mainArea");
   const periodLabel = document.getElementById("periodLabel");
+  const undoToast = document.getElementById("undoToast");
+  const undoToastText = document.getElementById("undoToastText");
+  const btnUndo = document.getElementById("btnUndo");
 
   const btnMonthView = document.getElementById("btnMonthView");
   const btnWeekView = document.getElementById("btnWeekView");
@@ -180,6 +183,10 @@
   const menuDropdown = document.getElementById("menuDropdown");
   const btnManageCategories = document.getElementById("btnManageCategories");
   const categoryChips = document.getElementById("categoryChips");
+  const btnMonthlySummary = document.getElementById("btnMonthlySummary");
+  const summaryModal = document.getElementById("summaryModal");
+  const summaryModalTitle = document.getElementById("summaryModalTitle");
+  const summaryModalBody = document.getElementById("summaryModalBody");
 
   const categoryModal = document.getElementById("categoryModal");
   const categoryModalBox = categoryModal.querySelector(".modal");
@@ -217,6 +224,7 @@
   const eventTitleInput = document.getElementById("eventTitle");
   const eventNotesInput = document.getElementById("eventNotes");
   const btnDeleteEvent = document.getElementById("btnDeleteEvent");
+  const btnDuplicateEvent = document.getElementById("btnDuplicateEvent");
 
   // ---------- Rendering ----------
 
@@ -488,6 +496,7 @@
       eventTitleInput.value = ev.title;
       eventNotesInput.value = ev.notes || "";
       btnDeleteEvent.classList.remove("hidden");
+      btnDuplicateEvent.classList.remove("hidden");
       // Editing only ever touches this single occurrence, so the repeat
       // setup (only meaningful when first creating a series) is hidden.
       repeatRow.classList.add("hidden");
@@ -502,6 +511,7 @@
       eventAllDayInput.checked = false;
       renderCategorySelectOptions(categories[0] ? categories[0].name : undefined);
       btnDeleteEvent.classList.add("hidden");
+      btnDuplicateEvent.classList.add("hidden");
       repeatRow.classList.remove("hidden");
       eventRepeatWeeklyInput.checked = false;
       repeatDaysRow.classList.add("hidden");
@@ -597,30 +607,75 @@
     refreshOpenDayModalIfNeeded();
   });
 
+  let undoTimer = null;
+
+  function showUndoToast(message, deletedEvents) {
+    clearTimeout(undoTimer);
+    undoToastText.textContent = message;
+    undoToast.classList.remove("hidden");
+    btnUndo.onclick = () => {
+      events.push(...deletedEvents);
+      saveEvents();
+      render();
+      refreshOpenDayModalIfNeeded();
+      hideUndoToast();
+    };
+    undoTimer = setTimeout(hideUndoToast, 6000);
+  }
+
+  function hideUndoToast() {
+    clearTimeout(undoTimer);
+    undoToast.classList.add("hidden");
+  }
+
   btnDeleteEvent.addEventListener("click", () => {
     const id = eventIdInput.value;
     if (!id) return;
     const ev = events.find((e) => e.id === id);
     if (!ev) return;
-    if (!confirm("この予定を削除しますか？メモの内容も削除されます。")) return;
 
+    let deletedEvents;
     if (ev.seriesId) {
       const deleteFuture = confirm(
         "この予定は毎週繰り返す予定の一部です。\n\nOK: この回以降のすべての回を削除\nキャンセル: この回だけ削除"
       );
-      if (deleteFuture) {
-        events = events.filter((e) => !(e.seriesId === ev.seriesId && e.startDate >= ev.startDate));
-      } else {
-        events = events.filter((e) => e.id !== id);
-      }
+      deletedEvents = deleteFuture
+        ? events.filter((e) => e.seriesId === ev.seriesId && e.startDate >= ev.startDate)
+        : events.filter((e) => e.id === id);
     } else {
-      events = events.filter((e) => e.id !== id);
+      deletedEvents = events.filter((e) => e.id === id);
     }
+
+    const deletedIds = new Set(deletedEvents.map((e) => e.id));
+    events = events.filter((e) => !deletedIds.has(e.id));
 
     saveEvents();
     closeModal(eventModal);
     render();
     refreshOpenDayModalIfNeeded();
+    showUndoToast(
+      deletedEvents.length > 1 ? `${deletedEvents.length}件の予定を削除しました` : "予定を削除しました",
+      deletedEvents
+    );
+  });
+
+  btnDuplicateEvent.addEventListener("click", () => {
+    const id = eventIdInput.value;
+    const ev = events.find((e) => e.id === id);
+    if (!ev) return;
+
+    // Re-open as a fresh "add" form (so repeat options, delete/duplicate
+    // buttons, etc. reset correctly) pre-filled with this event's details.
+    openEventModal(null, ev.startDate);
+    eventModalTitle.textContent = "予定を複製";
+    eventEndDateInput.value = ev.endDate;
+    eventStartTimeInput.value = ev.startTime || "";
+    eventEndTimeInput.value = ev.endTime || "";
+    eventAllDayInput.checked = !ev.startTime && !ev.endTime;
+    syncAllDayUI();
+    renderCategorySelectOptions(ev.category);
+    eventTitleInput.value = ev.title;
+    eventNotesInput.value = ev.notes || "";
   });
 
   function refreshOpenDayModalIfNeeded() {
@@ -635,7 +690,7 @@
     btn.addEventListener("click", () => closeModal(document.getElementById(btn.dataset.close)));
   });
 
-  [dayModal, eventModal, categoryModal].forEach((overlay) => {
+  [dayModal, eventModal, categoryModal, summaryModal].forEach((overlay) => {
     overlay.addEventListener("click", (e) => {
       if (e.target === overlay) closeModal(overlay);
     });
@@ -643,7 +698,7 @@
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
-      [dayModal, eventModal, categoryModal].forEach((overlay) => {
+      [dayModal, eventModal, categoryModal, summaryModal].forEach((overlay) => {
         if (!overlay.classList.contains("hidden")) closeModal(overlay);
       });
     }
@@ -670,6 +725,14 @@
     render();
     playNavAnimation(direction);
   }
+
+  // Tap the period label ("2026年9月") to jump straight back to today,
+  // since the dedicated today button was removed in favor of swiping.
+  periodLabel.addEventListener("click", () => {
+    state.cursor = startOfDay(new Date());
+    render();
+    playNavAnimation("next");
+  });
 
   function setView(view) {
     state.view = view;
@@ -781,6 +844,60 @@
     menuDropdown.classList.toggle("hidden");
   });
   document.addEventListener("click", () => menuDropdown.classList.add("hidden"));
+
+  // ---------- Monthly summary ----------
+
+  function renderMonthlySummary() {
+    const y = state.cursor.getFullYear();
+    const m = state.cursor.getMonth();
+    const startKey = toDateKey(new Date(y, m, 1));
+    const endKey = toDateKey(new Date(y, m + 1, 0));
+
+    summaryModalTitle.textContent = `${y}年${m + 1}月の集計`;
+
+    const counts = {};
+    let total = 0;
+    events.forEach((ev) => {
+      if (ev.startDate >= startKey && ev.startDate <= endKey) {
+        counts[ev.category] = (counts[ev.category] || 0) + 1;
+        total++;
+      }
+    });
+
+    if (total === 0) {
+      summaryModalBody.innerHTML = `<div class="summary-empty">この月の予定はまだありません</div>`;
+      return;
+    }
+
+    const rows = categories
+      .map((c) => ({ name: c.name, color: c.color, count: counts[c.name] || 0 }))
+      .filter((r) => r.count > 0)
+      .sort((a, b) => b.count - a.count);
+
+    summaryModalBody.innerHTML =
+      `<div class="summary-total"><strong>${total}</strong>件の予定</div>` +
+      rows
+        .map(
+          (r) => `
+          <div class="summary-row">
+            <div class="summary-row-header">
+              <span class="dot" style="background-color:${r.color}"></span>
+              <span class="cat-name">${escapeHtml(r.name)}</span>
+              <span class="cat-count">${r.count}件</span>
+            </div>
+            <div class="summary-bar-track">
+              <div class="summary-bar-fill" style="width:${(r.count / total) * 100}%; background-color:${r.color}"></div>
+            </div>
+          </div>`
+        )
+        .join("");
+  }
+
+  btnMonthlySummary.addEventListener("click", () => {
+    menuDropdown.classList.add("hidden");
+    renderMonthlySummary();
+    summaryModal.classList.remove("hidden");
+  });
 
   // ---------- Category management ----------
 
