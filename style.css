@@ -711,6 +711,49 @@ html, body {
   font-size: 12px;
 }
 
+.suggestion-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.suggestion-label {
+  width: 100%;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.suggestion-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  background: #f4f6f9;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  max-width: 100%;
+}
+.suggestion-chip:hover {
+  background: #eef1f5;
+  border-color: #cbd5e1;
+}
+.suggestion-chip .suggestion-title {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+}
+.suggestion-chip .suggestion-time {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
 .hint-text {
   font-size: 11px;
   color: var(--text-muted);

@@ -211,6 +211,7 @@
   const repeatUntilRow = document.getElementById("repeatUntilRow");
   const eventRepeatUntilInput = document.getElementById("eventRepeatUntil");
   const eventCategoryInput = document.getElementById("eventCategory");
+  const titleSuggestions = document.getElementById("titleSuggestions");
   const eventTitleInput = document.getElementById("eventTitle");
   const eventNotesInput = document.getElementById("eventNotes");
   const btnDeleteEvent = document.getElementById("btnDeleteEvent");
@@ -782,7 +783,60 @@
     if (current && categories.some((c) => c.name === current)) {
       eventCategoryInput.value = current;
     }
+    renderTitleSuggestions();
   }
+
+  // Most-recently-used titles (with their time) for a category, one entry per
+  // distinct title, so picking a category can suggest past entries to reuse.
+  function getRecentEventsForCategory(category) {
+    const seen = new Set();
+    const results = [];
+    events
+      .slice()
+      .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+      .forEach((ev) => {
+        if (ev.category !== category || !ev.title || seen.has(ev.title)) return;
+        seen.add(ev.title);
+        results.push(ev);
+      });
+    return results.slice(0, 5);
+  }
+
+  function renderTitleSuggestions() {
+    const suggestions = getRecentEventsForCategory(eventCategoryInput.value);
+    if (suggestions.length === 0) {
+      titleSuggestions.classList.add("hidden");
+      titleSuggestions.innerHTML = "";
+      return;
+    }
+    titleSuggestions.classList.remove("hidden");
+    titleSuggestions.innerHTML =
+      `<div class="suggestion-label">過去の入力候補</div>` +
+      suggestions
+        .map((ev) => {
+          const timeLabel = ev.startTime ? `${ev.startTime}${ev.endTime ? " - " + ev.endTime : ""}` : "終日";
+          return `
+            <button type="button" class="suggestion-chip" data-id="${ev.id}">
+              <span class="suggestion-title">${escapeHtml(ev.title)}</span>
+              <span class="suggestion-time">${timeLabel}</span>
+            </button>`;
+        })
+        .join("");
+
+    titleSuggestions.querySelectorAll(".suggestion-chip").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const ev = events.find((e) => e.id === btn.dataset.id);
+        if (!ev) return;
+        eventTitleInput.value = ev.title;
+        eventAllDayInput.checked = !ev.startTime;
+        eventStartTimeInput.value = ev.startTime || "";
+        eventEndTimeInput.value = ev.endTime || "";
+        syncAllDayUI();
+      });
+    });
+  }
+
+  eventCategoryInput.addEventListener("change", renderTitleSuggestions);
 
   let editingCategoryName = null;
 
