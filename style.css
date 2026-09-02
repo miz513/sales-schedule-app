@@ -72,10 +72,10 @@ html, body {
 }
 .mascot-penguin .mp-body {
   transform-origin: 20px 46px;
-  animation: penguinIdleWaddle 0.8s ease-in-out infinite;
+  animation: penguinIdleWaddle 1.7s ease-in-out infinite;
 }
 .mascot-child .mp-body {
-  animation-duration: 0.62s;
+  animation-duration: 1.4s;
   animation-delay: 0.14s;
 }
 .mascot-penguin .mp-flipper-left {
