@@ -64,21 +64,80 @@ html, body {
   align-items: flex-end;
   gap: 2px;
   margin-left: 10px;
+  overflow: visible;
 }
 .mascot-penguin {
-  transform-origin: bottom center;
   flex-shrink: 0;
+  overflow: visible;
 }
-.mascot-parent {
-  animation: penguinWaddle 0.7s ease-in-out infinite;
+.mascot-penguin .mp-body {
+  transform-origin: 20px 46px;
+  animation: penguinIdleWaddle 0.8s ease-in-out infinite;
 }
-.mascot-child {
-  animation: penguinWaddle 0.55s ease-in-out infinite;
-  animation-delay: 0.12s;
+.mascot-child .mp-body {
+  animation-duration: 0.62s;
+  animation-delay: 0.14s;
 }
-@keyframes penguinWaddle {
-  0%, 100% { transform: rotate(-7deg); }
-  50% { transform: rotate(7deg); }
+.mascot-penguin .mp-flipper-left {
+  transform-origin: 8px 20px;
+}
+.mascot-penguin .mp-flipper-right {
+  transform-origin: 32px 20px;
+}
+.mascot-penguin .mp-head {
+  transform-origin: 20px 18px;
+}
+@keyframes penguinIdleWaddle {
+  0%, 100% { transform: rotate(-6deg); }
+  50% { transform: rotate(6deg); }
+}
+
+/* Random one-off actions, toggled briefly via JS so the mascot never
+   settles into one predictable loop. */
+@keyframes penguinFlapLeft {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-32deg); }
+}
+@keyframes penguinFlapRight {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(32deg); }
+}
+.mascot-penguin.action-flap .mp-flipper-left {
+  animation: penguinFlapLeft 0.22s ease-in-out 4;
+}
+.mascot-penguin.action-flap .mp-flipper-right {
+  animation: penguinFlapRight 0.22s ease-in-out 4;
+}
+
+@keyframes penguinLook {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(20deg); }
+  70% { transform: rotate(-20deg); }
+  100% { transform: rotate(0deg); }
+}
+.mascot-penguin.action-look .mp-head {
+  animation: penguinLook 1.5s ease-in-out 1;
+}
+
+@keyframes penguinJump {
+  0%, 100% { transform: translateY(0); }
+  35% { transform: translateY(-6px); }
+  55% { transform: translateY(-6px); }
+  80% { transform: translateY(0); }
+}
+.mascot-penguin.action-jump {
+  animation: penguinJump 0.5s ease-in-out 1;
+}
+
+@keyframes penguinWave {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(-45deg); }
+  40% { transform: rotate(-15deg); }
+  60% { transform: rotate(-45deg); }
+  80% { transform: rotate(-10deg); }
+}
+.mascot-penguin.action-wave .mp-flipper-right {
+  animation: penguinWave 1.3s ease-in-out 1;
 }
 
 .auth-gate-box p {

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>スケジュール管理</title>
-<link rel="stylesheet" href="style.css?v=36">
+<link rel="stylesheet" href="style.css?v=37">
 </head>
 <body>
 
@@ -35,28 +35,36 @@
       <h1>スケジュール管理</h1>
       <div class="header-mascot" aria-hidden="true">
         <svg class="mascot-penguin mascot-parent" viewBox="0 0 40 50" width="26" height="32">
-          <ellipse cx="20" cy="26" rx="16" ry="20" fill="#20242c"/>
-          <ellipse cx="20" cy="30" rx="10" ry="14" fill="#ffffff"/>
-          <circle cx="20" cy="10" r="9" fill="#20242c"/>
-          <path d="M20 10 L28 8 L28 14 Z" fill="#f6a723"/>
-          <circle cx="17" cy="8" r="1.8" fill="#fff"/>
-          <circle cx="17.3" cy="8" r="0.9" fill="#161616"/>
-          <ellipse cx="8" cy="26" rx="4" ry="10" fill="#20242c"/>
-          <ellipse cx="32" cy="26" rx="4" ry="10" fill="#20242c"/>
-          <path d="M13 44 L18 48 L20 44 Z" fill="#f6a723"/>
-          <path d="M27 44 L22 48 L20 44 Z" fill="#f6a723"/>
+          <g class="mp-body">
+            <ellipse cx="20" cy="26" rx="16" ry="20" fill="#20242c"/>
+            <ellipse cx="20" cy="30" rx="10" ry="14" fill="#ffffff"/>
+            <g class="mp-flipper-left"><ellipse cx="8" cy="26" rx="4" ry="10" fill="#20242c"/></g>
+            <g class="mp-flipper-right"><ellipse cx="32" cy="26" rx="4" ry="10" fill="#20242c"/></g>
+            <g class="mp-head">
+              <circle cx="20" cy="10" r="9" fill="#20242c"/>
+              <path d="M20 10 L28 8 L28 14 Z" fill="#f6a723"/>
+              <circle cx="17" cy="8" r="1.8" fill="#fff"/>
+              <circle cx="17.3" cy="8" r="0.9" fill="#161616"/>
+            </g>
+            <path d="M13 44 L18 48 L20 44 Z" fill="#f6a723"/>
+            <path d="M27 44 L22 48 L20 44 Z" fill="#f6a723"/>
+          </g>
         </svg>
         <svg class="mascot-penguin mascot-child" viewBox="0 0 40 50" width="16" height="20">
-          <ellipse cx="20" cy="26" rx="16" ry="20" fill="#20242c"/>
-          <ellipse cx="20" cy="30" rx="10" ry="14" fill="#ffffff"/>
-          <circle cx="20" cy="10" r="9" fill="#20242c"/>
-          <path d="M20 10 L28 8 L28 14 Z" fill="#f6a723"/>
-          <circle cx="17" cy="8" r="1.8" fill="#fff"/>
-          <circle cx="17.3" cy="8" r="0.9" fill="#161616"/>
-          <ellipse cx="8" cy="26" rx="4" ry="10" fill="#20242c"/>
-          <ellipse cx="32" cy="26" rx="4" ry="10" fill="#20242c"/>
-          <path d="M13 44 L18 48 L20 44 Z" fill="#f6a723"/>
-          <path d="M27 44 L22 48 L20 44 Z" fill="#f6a723"/>
+          <g class="mp-body">
+            <ellipse cx="20" cy="26" rx="16" ry="20" fill="#20242c"/>
+            <ellipse cx="20" cy="30" rx="10" ry="14" fill="#ffffff"/>
+            <g class="mp-flipper-left"><ellipse cx="8" cy="26" rx="4" ry="10" fill="#20242c"/></g>
+            <g class="mp-flipper-right"><ellipse cx="32" cy="26" rx="4" ry="10" fill="#20242c"/></g>
+            <g class="mp-head">
+              <circle cx="20" cy="10" r="9" fill="#20242c"/>
+              <path d="M20 10 L28 8 L28 14 Z" fill="#f6a723"/>
+              <circle cx="17" cy="8" r="1.8" fill="#fff"/>
+              <circle cx="17.3" cy="8" r="0.9" fill="#161616"/>
+            </g>
+            <path d="M13 44 L18 48 L20 44 Z" fill="#f6a723"/>
+            <path d="M27 44 L22 48 L20 44 Z" fill="#f6a723"/>
+          </g>
         </svg>
       </div>
     </div>
@@ -236,7 +244,7 @@
   </div>
 </div>
 
-<script src="app.js?v=36"></script>
+<script src="app.js?v=37"></script>
 <script type="module" src="firebase-sync.js?v=5"></script>
 <script>
   if ("serviceWorker" in navigator) {

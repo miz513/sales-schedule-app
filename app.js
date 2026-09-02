@@ -1286,9 +1286,40 @@
     return str.slice(0, n) + "…";
   }
 
+  // ---------- Mascot ----------
+
+  function setupMascotAnimation() {
+    const MASCOT_ACTIONS = [
+      { cls: "action-flap", duration: 900 },
+      { cls: "action-look", duration: 1500 },
+      { cls: "action-jump", duration: 500 },
+      { cls: "action-wave", duration: 1300 },
+    ];
+    document.querySelectorAll(".mascot-penguin").forEach((penguin) => {
+      let lastCls = null;
+      function scheduleNext() {
+        const delay = 3000 + Math.random() * 5000;
+        setTimeout(() => {
+          let action = MASCOT_ACTIONS[Math.floor(Math.random() * MASCOT_ACTIONS.length)];
+          if (MASCOT_ACTIONS.length > 1 && action.cls === lastCls) {
+            action = MASCOT_ACTIONS[(MASCOT_ACTIONS.indexOf(action) + 1) % MASCOT_ACTIONS.length];
+          }
+          lastCls = action.cls;
+          penguin.classList.add(action.cls);
+          setTimeout(() => {
+            penguin.classList.remove(action.cls);
+            scheduleNext();
+          }, action.duration);
+        }, delay);
+      }
+      scheduleNext();
+    });
+  }
+
   // ---------- Init ----------
 
   renderCategoryChips();
   renderCategorySelectOptions();
   render();
+  setupMascotAnimation();
 })();
