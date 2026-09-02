@@ -179,6 +179,23 @@ function updateNotifyStatus(text) {
   if (notifyStatus) notifyStatus.textContent = text;
 }
 
+let foregroundHandlerRegistered = false;
+
+// Chrome on Android throws if a page script calls `new Notification()`
+// directly while a service worker controls the page — it must go through
+// the worker's own showNotification instead, same as the background handler
+// in sw.js. Registered once (not per registerNotificationToken call) so a
+// user re-enabling notifications never ends up with duplicate popups.
+function ensureForegroundHandler(messaging, registration) {
+  if (foregroundHandlerRegistered) return;
+  foregroundHandlerRegistered = true;
+  onMessage(messaging, (payload) => {
+    const title = (payload.notification && payload.notification.title) || "予定";
+    const body = (payload.notification && payload.notification.body) || "";
+    registration.showNotification(title, { body });
+  });
+}
+
 async function registerNotificationToken() {
   if (!currentUser) return;
   if (!(await isMessagingSupported())) {
@@ -193,11 +210,7 @@ async function registerNotificationToken() {
     if (token) {
       await updateDoc(userDocRef(currentUser.uid), { fcmTokens: arrayUnion(token) });
       updateNotifyStatus("通知: 有効");
-      onMessage(messaging, (payload) => {
-        const title = (payload.notification && payload.notification.title) || "予定";
-        const body = (payload.notification && payload.notification.body) || "";
-        new Notification(title, { body });
-      });
+      ensureForegroundHandler(messaging, registration);
     }
   } catch (e) {
     console.error(e);
