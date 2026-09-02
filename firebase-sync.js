@@ -192,7 +192,8 @@ function ensureForegroundHandler(messaging, registration) {
   onMessage(messaging, (payload) => {
     const title = (payload.notification && payload.notification.title) || "予定";
     const body = (payload.notification && payload.notification.body) || "";
-    registration.showNotification(title, { body });
+    const link = (payload.fcmOptions && payload.fcmOptions.link) || (payload.data && payload.data.link) || registration.scope;
+    registration.showNotification(title, { body, data: { url: link } });
   });
 }
 

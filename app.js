@@ -1518,7 +1518,16 @@
     memoChecklistSection.classList.toggle("hidden", type !== "checklist");
   }
 
-  memoTypeRadios.forEach((radio) => radio.addEventListener("change", syncMemoTypeSections));
+  memoTypeRadios.forEach((radio) =>
+    radio.addEventListener("change", () => {
+      syncMemoTypeSections();
+      const type = document.querySelector('input[name="memoType"]:checked').value;
+      if (type === "checklist" && editingMemoItems.length === 0) {
+        editingMemoItems.push({ id: uid("mi"), text: "", checked: false });
+        renderMemoItemRows();
+      }
+    })
+  );
 
   function openMemoEdit(memo) {
     memoIdInput.value = memo ? memo.id : "";

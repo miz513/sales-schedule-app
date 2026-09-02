@@ -17,10 +17,32 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+function linkFromPayload(payload) {
+  return (payload.fcmOptions && payload.fcmOptions.link) || (payload.data && payload.data.link) || self.registration.scope;
+}
+
 messaging.onBackgroundMessage((payload) => {
   const title = (payload.notification && payload.notification.title) || "予定";
   const body = (payload.notification && payload.notification.body) || "";
-  self.registration.showNotification(title, { body });
+  self.registration.showNotification(title, { body, data: { url: linkFromPayload(payload) } });
+});
+
+// Notifications have no built-in "open this URL" behavior once the app
+// supplies its own onBackgroundMessage handler — without this, tapping one
+// just dismisses it.
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || self.registration.scope;
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((windowClients) => {
+      for (const client of windowClients) {
+        if ("focus" in client) {
+          return client.navigate(url).then((c) => c && c.focus());
+        }
+      }
+      if (self.clients.openWindow) return self.clients.openWindow(url);
+    })
+  );
 });
 
 // Forces every request through the network instead of the browser's own HTTP
