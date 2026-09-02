@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#2563eb">
 <link rel="manifest" href="manifest.json">
 <title>スケジュール管理</title>
-<link rel="stylesheet" href="style.css?v=47">
+<link rel="stylesheet" href="style.css?v=48">
 </head>
 <body>
 
@@ -308,6 +308,7 @@
         <div id="memoItemsList" class="memo-items-list"></div>
         <button type="button" id="btnAddMemoItem" class="secondary-btn">＋ 項目を追加</button>
       </div>
+      <button type="button" id="btnNotifyMemoNow" class="secondary-btn full-width">今すぐ通知に出す</button>
     </div>
     <div class="form-actions">
       <button type="button" id="btnDeleteMemo" class="danger-btn hidden">削除</button>
@@ -350,8 +351,8 @@
   </div>
 </div>
 
-<script src="app.js?v=46"></script>
-<script type="module" src="firebase-sync.js?v=6"></script>
+<script src="app.js?v=47"></script>
+<script type="module" src="firebase-sync.js?v=7"></script>
 <script>
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js?v=2");

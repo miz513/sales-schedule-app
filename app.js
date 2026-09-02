@@ -245,6 +245,7 @@
   const btnAddMemoItem = document.getElementById("btnAddMemoItem");
   const btnDeleteMemo = document.getElementById("btnDeleteMemo");
   const btnSaveMemo = document.getElementById("btnSaveMemo");
+  const btnNotifyMemoNow = document.getElementById("btnNotifyMemoNow");
 
   const dayModal = document.getElementById("dayModal");
   const dayModalTitle = document.getElementById("dayModalTitle");
@@ -1597,6 +1598,42 @@
     closeModal(memoEditModal);
     renderMemoList();
     memoModal.classList.remove("hidden");
+  });
+
+  const NOTIFY_BODY_MAX = 300;
+
+  btnNotifyMemoNow.addEventListener("click", async () => {
+    const title = memoTitleInput.value.trim() || "メモ";
+    const type = document.querySelector('input[name="memoType"]:checked').value;
+    let body;
+    if (type === "text") {
+      body = memoContentInput.value.trim();
+    } else {
+      body = editingMemoItems
+        .filter((it) => it.text.trim() !== "")
+        .map((it) => `${it.checked ? "☑" : "☐"} ${it.text.trim()}`)
+        .join("\n");
+    }
+    body = truncate(body || "（内容なし）", NOTIFY_BODY_MAX);
+
+    if (!window.ScheduleApp.notifyMemo) {
+      alert("通知機能の読み込みに失敗しました。ページを再読み込みしてください。");
+      return;
+    }
+    btnNotifyMemoNow.disabled = true;
+    try {
+      await window.ScheduleApp.notifyMemo(title, body);
+      alert("通知を送信しました");
+    } catch (e) {
+      const msg = (e && e.message) || String(e);
+      if (msg.includes("failed-precondition")) {
+        alert("先にメニューから通知を有効にしてください");
+      } else {
+        alert("通知の送信に失敗しました: " + msg);
+      }
+    } finally {
+      btnNotifyMemoNow.disabled = false;
+    }
   });
 
   btnDeleteMemo.addEventListener("click", () => {

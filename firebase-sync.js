@@ -22,6 +22,7 @@ import {
   getToken,
   onMessage,
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-functions.js";
 
 // Generated in Firebase Console → Project settings → Cloud Messaging → Web
 // configuration → "Generate key pair". Public by design (safe to ship).
@@ -43,6 +44,7 @@ const auth = getAuth(app);
 const db = initializeFirestore(app, {
   localCache: persistentLocalCache({ tabManager: persistentSingleTabManager() }),
 });
+const functions = getFunctions(app, "asia-northeast1");
 const provider = new GoogleAuthProvider();
 
 const btnSignIn = document.getElementById("btnSignIn");
@@ -227,3 +229,13 @@ onAuthStateChanged(auth, (user) => {
     updateNotifyStatus("通知: 無効（メニューから有効にできます）");
   }
 });
+
+// Lets a memo be pushed to the notification shade on demand ("今すぐ通知に出
+// す"), as a stand-in for a home-screen widget — a plain web app can't create
+// one of those, but a notification the user leaves undismissed behaves a lot
+// like one in the meantime.
+window.ScheduleApp.notifyMemo = async (title, body) => {
+  if (!currentUser) throw new Error("先にログインしてください");
+  const sendMemoNotification = httpsCallable(functions, "sendMemoNotification");
+  await sendMemoNotification({ title, body });
+};
