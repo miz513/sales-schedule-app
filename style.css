@@ -63,7 +63,6 @@ html, body {
   display: flex;
   align-items: flex-end;
   gap: 2px;
-  margin-left: 10px;
   overflow: visible;
 }
 .mascot-penguin {
@@ -254,22 +253,10 @@ html, body {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 10px 20px;
+  padding: 8px 20px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   flex-wrap: wrap;
-}
-
-.topbar-left {
-  display: flex;
-  align-items: center;
-}
-
-.topbar h1 {
-  font-size: 18px;
-  margin: 0;
-  font-weight: 700;
-  color: var(--text);
 }
 
 .topbar-center {
@@ -1061,10 +1048,9 @@ html, body {
   .topbar {
     flex-direction: column;
     align-items: stretch;
-    gap: 8px;
-    padding: 8px 12px;
+    gap: 6px;
+    padding: 6px 12px;
   }
-  .topbar-left { display: flex; align-items: center; justify-content: space-between; }
   .topbar-center { justify-content: center; }
   .period-label { flex: 1; text-align: center; min-width: 0; }
   .topbar-right { justify-content: space-between; }
@@ -1076,7 +1062,7 @@ html, body {
   }
 
   .filter-bar {
-    padding: 8px 12px;
+    padding: 6px 12px;
     flex-wrap: wrap;
   }
   .filter-label { display: none; }
