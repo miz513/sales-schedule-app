@@ -1695,6 +1695,16 @@
     });
   }
 
+  // Tapping a memo's push notification links to ?open=memo so the app comes
+  // straight back to the memo list instead of the calendar.
+  function openMemoFromDeepLink() {
+    if (new URLSearchParams(location.search).get("open") !== "memo") return;
+    history.replaceState(null, "", location.pathname);
+    renderMemoList();
+    memoModal.classList.remove("hidden");
+    memoModalBody.scrollTop = 0;
+  }
+
   // ---------- Init ----------
 
   renderCategoryChips();
@@ -1702,4 +1712,5 @@
   renderMemoList();
   render();
   setupMascotAnimation();
+  openMemoFromDeepLink();
 })();
