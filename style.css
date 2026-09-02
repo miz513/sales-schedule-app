@@ -455,6 +455,26 @@ html, body {
   flex-wrap: wrap;
 }
 
+.icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text);
+  flex-shrink: 0;
+}
+.icon-btn:hover { background: #f0f2f5; }
+
+.filter-bar #btnManageCategories {
+  margin-left: auto;
+}
+
 /* ---------- Bottom bar ---------- */
 .bottom-bar {
   display: flex;
@@ -974,6 +994,97 @@ html, body {
   margin-top: 4px;
   white-space: pre-wrap;
 }
+
+/* ---------- Memo ---------- */
+.memo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 60vh;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+.memo-card {
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--primary);
+  border-radius: 6px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+.memo-card:hover { background: #f8fafc; }
+.memo-card-title {
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.memo-card-items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.memo-card-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  color: var(--text);
+}
+.memo-card-item.checked {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+.memo-check {
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.memo-card-more {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.memo-progress {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+.memo-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.memo-item-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.memo-item-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.memo-item-row input[type="text"] {
+  flex: 1;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 14px;
+  font-family: inherit;
+}
+.memo-item-delete {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 18px;
+  cursor: pointer;
+  flex-shrink: 0;
+  line-height: 1;
+  padding: 4px;
+}
+.memo-item-delete:hover { color: var(--danger); }
 
 /* ---------- Category management ---------- */
 .category-select-row {

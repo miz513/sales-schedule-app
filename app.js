@@ -3,6 +3,7 @@
 
   const STORAGE_KEY = "sales-schedule-app.events.v1";
   const CATEGORY_STORAGE_KEY = "sales-schedule-app.categories.v1";
+  const MEMO_STORAGE_KEY = "sales-schedule-app.memos.v1";
 
   const DEFAULT_CATEGORIES = [
     { name: "商談", color: "#2563eb" },
@@ -21,6 +22,9 @@
 
   /** @type {Array<{name: string, color: string}>} */
   let categories = loadCategories();
+
+  /** @type {Array<{id: string, title: string, color: string, items: Array<{id: string, text: string, checked: boolean}>, createdAt: number}>} */
+  let memos = loadMemos();
 
   let state = {
     view: "month", // 'month' | 'week'
@@ -76,6 +80,23 @@
     notifyDataChanged();
   }
 
+  function loadMemos() {
+    try {
+      const raw = localStorage.getItem(MEMO_STORAGE_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      console.error("メモの読み込みに失敗しました", e);
+      return [];
+    }
+  }
+
+  function saveMemos() {
+    localStorage.setItem(MEMO_STORAGE_KEY, JSON.stringify(memos));
+    notifyDataChanged();
+  }
+
   // ---------- Cloud sync hook ----------
   // A tiny public surface so firebase-sync.js can read/replace all local data
   // and get notified when it changes, without needing to know this module's internals.
@@ -91,17 +112,20 @@
       Array.isArray(data.categories) && data.categories.length
         ? data.categories
         : DEFAULT_CATEGORIES.map((c) => ({ ...c }));
+    memos = Array.isArray(data.memos) ? data.memos : [];
     localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
     localStorage.setItem(CATEGORY_STORAGE_KEY, JSON.stringify(categories));
+    localStorage.setItem(MEMO_STORAGE_KEY, JSON.stringify(memos));
     state.activeCategories = new Set();
     renderCategoryChips();
     renderCategorySelectOptions();
     render();
     refreshOpenDayModalIfNeeded();
+    renderMemoList();
   }
 
   window.ScheduleApp = {
-    getData: () => ({ events, categories }),
+    getData: () => ({ events, categories, memos }),
     setData,
     onChange: (cb) => changeListeners.push(cb),
   };
@@ -111,8 +135,8 @@
     return found ? found.color : FALLBACK_COLOR;
   }
 
-  function uid() {
-    return "ev_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 8);
+  function uid(prefix) {
+    return (prefix || "ev") + "_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 8);
   }
 
   // ---------- Date helpers ----------
@@ -201,6 +225,21 @@
   const newCategoryColor = document.getElementById("newCategoryColor");
   const btnAddCategory = document.getElementById("btnAddCategory");
   const btnAddCategoryInline = document.getElementById("btnAddCategoryInline");
+
+  const btnMemo = document.getElementById("btnMemo");
+  const memoModal = document.getElementById("memoModal");
+  const memoModalBox = memoModal.querySelector(".modal");
+  const memoList = document.getElementById("memoList");
+  const btnAddMemo = document.getElementById("btnAddMemo");
+  const memoEditModal = document.getElementById("memoEditModal");
+  const memoEditModalTitle = document.getElementById("memoEditModalTitle");
+  const memoIdInput = document.getElementById("memoId");
+  const memoTitleInput = document.getElementById("memoTitleInput");
+  const memoColorInput = document.getElementById("memoColorInput");
+  const memoItemsList = document.getElementById("memoItemsList");
+  const btnAddMemoItem = document.getElementById("btnAddMemoItem");
+  const btnDeleteMemo = document.getElementById("btnDeleteMemo");
+  const btnSaveMemo = document.getElementById("btnSaveMemo");
 
   const dayModal = document.getElementById("dayModal");
   const dayModalTitle = document.getElementById("dayModalTitle");
@@ -773,7 +812,7 @@
     btn.addEventListener("click", () => closeModal(document.getElementById(btn.dataset.close)));
   });
 
-  [dayModal, eventModal, categoryModal, summaryModal, yearMonthModal].forEach((overlay) => {
+  [dayModal, eventModal, categoryModal, summaryModal, yearMonthModal, memoModal, memoEditModal].forEach((overlay) => {
     overlay.addEventListener("click", (e) => {
       if (e.target === overlay) closeModal(overlay);
     });
@@ -781,7 +820,7 @@
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
-      [dayModal, eventModal, categoryModal, summaryModal, yearMonthModal].forEach((overlay) => {
+      [dayModal, eventModal, categoryModal, summaryModal, yearMonthModal, memoModal, memoEditModal].forEach((overlay) => {
         if (!overlay.classList.contains("hidden")) closeModal(overlay);
       });
     }
@@ -1389,6 +1428,161 @@
     newCategoryName.focus();
   });
 
+  // ---------- Memo ----------
+
+  const MEMO_PREVIEW_MAX = 5;
+  let editingMemoItems = [];
+
+  function renderMemoList() {
+    if (memos.length === 0) {
+      memoList.innerHTML = `<div class="empty-hint">まだメモがありません</div>`;
+      return;
+    }
+    memoList.innerHTML = memos
+      .map((memo) => {
+        const items = memo.items || [];
+        const checkedCount = items.filter((it) => it.checked).length;
+        const itemsHtml = items
+          .slice(0, MEMO_PREVIEW_MAX)
+          .map(
+            (it) => `
+          <div class="memo-card-item ${it.checked ? "checked" : ""}">
+            <span class="memo-check" data-memo-id="${memo.id}" data-item-id="${it.id}">${it.checked ? "☑" : "☐"}</span>
+            <span>${escapeHtml(it.text)}</span>
+          </div>`
+          )
+          .join("");
+        const moreHtml =
+          items.length > MEMO_PREVIEW_MAX
+            ? `<div class="memo-card-more">他 ${items.length - MEMO_PREVIEW_MAX} 件</div>`
+            : "";
+        const progressHtml = items.length > 0 ? `<div class="memo-progress">${checkedCount}/${items.length} 完了</div>` : "";
+        return `
+        <div class="memo-card" style="border-left-color:${memo.color || FALLBACK_COLOR}" data-id="${memo.id}">
+          <div class="memo-card-title">${escapeHtml(memo.title)}</div>
+          <div class="memo-card-items">${itemsHtml}</div>
+          ${moreHtml}
+          ${progressHtml}
+        </div>`;
+      })
+      .join("");
+  }
+
+  memoList.addEventListener("click", (e) => {
+    const check = e.target.closest(".memo-check");
+    if (check) {
+      e.stopPropagation();
+      const memo = memos.find((m) => m.id === check.dataset.memoId);
+      const item = memo && (memo.items || []).find((it) => it.id === check.dataset.itemId);
+      if (item) {
+        item.checked = !item.checked;
+        saveMemos();
+        renderMemoList();
+      }
+      return;
+    }
+    const card = e.target.closest(".memo-card");
+    if (card) {
+      closeModal(memoModal);
+      openMemoEdit(memos.find((m) => m.id === card.dataset.id));
+    }
+  });
+
+  btnMemo.addEventListener("click", () => {
+    renderMemoList();
+    memoModal.classList.remove("hidden");
+    memoList.scrollTop = 0;
+  });
+
+  btnAddMemo.addEventListener("click", () => {
+    closeModal(memoModal);
+    openMemoEdit(null);
+  });
+
+  function openMemoEdit(memo) {
+    memoIdInput.value = memo ? memo.id : "";
+    memoEditModalTitle.textContent = memo ? "メモを編集" : "メモを追加";
+    memoTitleInput.value = memo ? memo.title : "";
+    memoColorInput.value = memo ? memo.color || "#16a34a" : "#16a34a";
+    editingMemoItems = memo ? (memo.items || []).map((it) => ({ ...it })) : [];
+    btnDeleteMemo.classList.toggle("hidden", !memo);
+    renderMemoItemRows();
+    memoEditModal.classList.remove("hidden");
+    memoEditModal.querySelector(".modal").scrollTop = 0;
+    memoTitleInput.focus();
+  }
+
+  function renderMemoItemRows() {
+    memoItemsList.innerHTML = editingMemoItems
+      .map(
+        (it) => `
+      <div class="memo-item-row" data-id="${it.id}">
+        <input type="checkbox" ${it.checked ? "checked" : ""}>
+        <input type="text" value="${escapeHtml(it.text)}" placeholder="項目を入力">
+        <button type="button" class="memo-item-delete" aria-label="項目を削除">×</button>
+      </div>`
+      )
+      .join("");
+
+    memoItemsList.querySelectorAll(".memo-item-row").forEach((row) => {
+      const id = row.dataset.id;
+      const item = editingMemoItems.find((it) => it.id === id);
+      row.querySelector('input[type="checkbox"]').addEventListener("change", (e) => {
+        item.checked = e.target.checked;
+      });
+      row.querySelector('input[type="text"]').addEventListener("input", (e) => {
+        item.text = e.target.value;
+      });
+      row.querySelector(".memo-item-delete").addEventListener("click", () => {
+        editingMemoItems = editingMemoItems.filter((it) => it.id !== id);
+        renderMemoItemRows();
+      });
+    });
+  }
+
+  btnAddMemoItem.addEventListener("click", () => {
+    editingMemoItems.push({ id: uid("mi"), text: "", checked: false });
+    renderMemoItemRows();
+    const rows = memoItemsList.querySelectorAll('input[type="text"]');
+    if (rows.length) rows[rows.length - 1].focus();
+  });
+
+  btnSaveMemo.addEventListener("click", () => {
+    const title = memoTitleInput.value.trim();
+    if (!title) {
+      memoTitleInput.focus();
+      return;
+    }
+    const items = editingMemoItems
+      .map((it) => ({ ...it, text: it.text.trim() }))
+      .filter((it) => it.text !== "");
+    const id = memoIdInput.value;
+    if (id) {
+      const memo = memos.find((m) => m.id === id);
+      memo.title = title;
+      memo.color = memoColorInput.value;
+      memo.items = items;
+    } else {
+      memos.push({ id: uid("memo"), title, color: memoColorInput.value, items, createdAt: Date.now() });
+    }
+    saveMemos();
+    closeModal(memoEditModal);
+    renderMemoList();
+    memoModal.classList.remove("hidden");
+  });
+
+  btnDeleteMemo.addEventListener("click", () => {
+    const id = memoIdInput.value;
+    if (!id) return;
+    const memo = memos.find((m) => m.id === id);
+    if (!memo || !confirm(`メモ「${memo.title}」を削除しますか？`)) return;
+    memos = memos.filter((m) => m.id !== id);
+    saveMemos();
+    closeModal(memoEditModal);
+    renderMemoList();
+    memoModal.classList.remove("hidden");
+  });
+
   // ---------- Utils ----------
 
   function escapeHtml(str) {
@@ -1439,6 +1633,7 @@
 
   renderCategoryChips();
   renderCategorySelectOptions();
+  renderMemoList();
   render();
   setupMascotAnimation();
 })();
