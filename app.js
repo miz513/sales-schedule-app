@@ -32,6 +32,7 @@
     activeCategories: new Set(), // empty = show all; non-empty = show only these
     dayModalDate: null, // Date currently shown in day modal
     selectedDateKey: null, // last day cell the user tapped, highlighted distinctly from "today"
+    monthMaxShow: 5, // how many event pills fit per day cell; re-measured against the real screen, see adjustMonthMaxShow()
   };
 
   // ---------- Persistence ----------
@@ -494,7 +495,10 @@
     return { rowBanners, shownIdsByDate, colLaneCounts };
   }
 
-  function renderMonthView() {
+  let monthAdjustAttempts = 0;
+
+  function renderMonthView(isCorrectivePass) {
+    if (!isCorrectivePass) monthAdjustAttempts = 0;
     const monthStart = startOfMonth(state.cursor);
     const gridStart = startOfWeek(monthStart);
     const today = startOfDay(new Date());
@@ -525,7 +529,7 @@
 
       const shownIds = shownIdsByDate[dateKey];
       const dayEvents = getEventsForDate(dateKey).filter((ev) => !shownIds || !shownIds.has(ev.id));
-      const maxShow = 5;
+      const maxShow = state.monthMaxShow;
       let eventsHtml = "";
       dayEvents.slice(0, maxShow).forEach((ev) => {
         const { prefix, suffix, isTime } = monthPillDecoration(ev, dateKey);
@@ -569,6 +573,49 @@
     mainArea.querySelectorAll(".month-banner").forEach((banner) => {
       banner.addEventListener("click", () => openDayModal(new Date(banner.dataset.date + "T00:00:00")));
     });
+
+    // Capped: at extremely constrained cell heights, the measured pill
+    // height can shift by sub-pixel fractions depending on how many pills
+    // are rendered, which without a limit here can oscillate between two
+    // counts forever. A few corrective passes is enough to converge in every
+    // normal case; if it hasn't by then, keep whatever it landed on.
+    if (monthAdjustAttempts < 3) {
+      monthAdjustAttempts++;
+      adjustMonthMaxShow();
+    }
+  }
+
+  // Every day cell in month view is the same height (the grid rows are 1fr),
+  // so measuring just one real rendered pill/cell tells us how many pills
+  // actually fit on THIS screen — taller phones legitimately fit more than
+  // shorter ones. Re-renders once, only if the guess it started with was off.
+  const MONTH_MAX_SHOW_CAP = 20; // absurdly generous; only exists so a bad measurement can't ever explode into thousands of pills
+
+  function adjustMonthMaxShow() {
+    const samplePill = mainArea.querySelector(".event-pill");
+    const cell = samplePill ? samplePill.closest(".day-cell") : null;
+    const eventsEl = cell ? cell.querySelector(".day-events") : null;
+    if (!samplePill || !cell || !eventsEl) return;
+
+    const availableHeight = cell.getBoundingClientRect().bottom - eventsEl.getBoundingClientRect().top - 2;
+    const pillRect = samplePill.getBoundingClientRect();
+    const style = getComputedStyle(eventsEl);
+    const gap = parseFloat(style.rowGap || style.gap || "0") || 0;
+    const pillStep = pillRect.height + gap;
+    // A pill is never legitimately this short; guards against a stray
+    // near-zero measurement turning into a runaway pill count below.
+    if (!Number.isFinite(pillStep) || pillStep < 4) return;
+    if (!Number.isFinite(availableHeight)) return;
+
+    // Reserves room for one more line in case a "他N件" label is needed,
+    // even on a render where nothing actually overflowed.
+    const rawFitCount = Math.floor((availableHeight - pillRect.height) / pillStep);
+    const fitCount = Math.min(MONTH_MAX_SHOW_CAP, Math.max(1, rawFitCount));
+
+    if (fitCount !== state.monthMaxShow) {
+      state.monthMaxShow = fitCount;
+      renderMonthView(true);
+    }
   }
 
   function renderWeekView() {
@@ -1821,6 +1868,16 @@
     memoModal.classList.remove("hidden");
     memoModalBody.scrollTop = 0;
   }
+
+  // Re-fits month-view pill counts on rotation/resize (re-render re-measures
+  // via adjustMonthMaxShow at the end of renderMonthView).
+  let resizeTimer = null;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      if (state.view === "month") renderMonthView();
+    }, 200);
+  });
 
   // ---------- Init ----------
 
