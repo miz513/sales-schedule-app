@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>スケジュール管理</title>
-<link rel="stylesheet" href="style.css?v=40">
+<link rel="stylesheet" href="style.css?v=41">
 </head>
 <body>
 
@@ -73,7 +73,6 @@
         <button id="btnMonthView" class="view-btn active" data-view="month">月</button>
         <button id="btnWeekView" class="view-btn" data-view="week">週</button>
       </div>
-      <button id="btnNewEvent" class="primary-btn">＋ 予定を追加</button>
       <button id="btnMenu" class="icon-btn" title="メニュー">⋮</button>
       <div id="menuDropdown" class="menu-dropdown hidden">
         <button id="btnSignIn">Googleでログイン（同期）</button>
@@ -98,6 +97,12 @@
   <main id="mainArea" class="main-area">
     <!-- 月表示・週表示はJSで描画 -->
   </main>
+
+  <button id="btnNewEvent" class="fab-btn" title="予定を追加" aria-label="予定を追加">
+    <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+      <path d="M12 5v14M5 12h14"></path>
+    </svg>
+  </button>
 
   <div id="undoToast" class="undo-toast hidden">
     <span id="undoToastText"></span>
@@ -241,7 +246,7 @@
   </div>
 </div>
 
-<script src="app.js?v=38"></script>
+<script src="app.js?v=39"></script>
 <script type="module" src="firebase-sync.js?v=5"></script>
 <script>
   if ("serviceWorker" in navigator) {
