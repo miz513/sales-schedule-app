@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>スケジュール管理</title>
-<link rel="stylesheet" href="style.css?v=45">
+<link rel="stylesheet" href="style.css?v=46">
 </head>
 <body>
 
@@ -275,6 +275,23 @@
         <input type="color" id="memoColorInput" value="#16a34a">
       </div>
       <div class="form-row">
+        <label>種類</label>
+        <div class="memo-type-toggle">
+          <label class="memo-type-option">
+            <input type="radio" name="memoType" value="text" checked>
+            通常のメモ
+          </label>
+          <label class="memo-type-option">
+            <input type="radio" name="memoType" value="checklist">
+            チェックリスト
+          </label>
+        </div>
+      </div>
+      <div class="form-row" id="memoTextSection">
+        <label>内容</label>
+        <textarea id="memoContentInput" rows="8" placeholder="自由にメモを書けます"></textarea>
+      </div>
+      <div class="form-row hidden" id="memoChecklistSection">
         <label>項目</label>
         <div id="memoItemsList" class="memo-items-list"></div>
         <button type="button" id="btnAddMemoItem" class="secondary-btn">＋ 項目を追加</button>
@@ -321,7 +338,7 @@
   </div>
 </div>
 
-<script src="app.js?v=44"></script>
+<script src="app.js?v=45"></script>
 <script type="module" src="firebase-sync.js?v=5"></script>
 <script>
   if ("serviceWorker" in navigator) {

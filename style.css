@@ -1016,6 +1016,15 @@ html, body {
   font-weight: 700;
   margin-bottom: 6px;
 }
+.memo-card-content {
+  font-size: 13px;
+  color: var(--text);
+  white-space: pre-wrap;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+}
 .memo-card-items {
   display: flex;
   flex-direction: column;
@@ -1047,6 +1056,33 @@ html, body {
   font-size: 11px;
   color: var(--text-muted);
   margin-top: 6px;
+}
+
+.memo-type-toggle {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.memo-type-option {
+  flex: 1;
+  text-align: center;
+  padding: 8px 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+.memo-type-option:first-child {
+  border-right: 1px solid var(--border);
+}
+.memo-type-option input {
+  display: none;
+}
+.memo-type-option:has(input:checked) {
+  background: var(--primary);
+  color: #fff;
 }
 
 .memo-items-list {

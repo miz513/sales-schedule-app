@@ -236,6 +236,10 @@
   const memoIdInput = document.getElementById("memoId");
   const memoTitleInput = document.getElementById("memoTitleInput");
   const memoColorInput = document.getElementById("memoColorInput");
+  const memoTypeRadios = document.querySelectorAll('input[name="memoType"]');
+  const memoTextSection = document.getElementById("memoTextSection");
+  const memoContentInput = document.getElementById("memoContentInput");
+  const memoChecklistSection = document.getElementById("memoChecklistSection");
   const memoItemsList = document.getElementById("memoItemsList");
   const btnAddMemoItem = document.getElementById("btnAddMemoItem");
   const btnDeleteMemo = document.getElementById("btnDeleteMemo");
@@ -1433,6 +1437,13 @@
   const MEMO_PREVIEW_MAX = 5;
   let editingMemoItems = [];
 
+  // Memos saved before the type toggle existed only ever stored items
+  // (checklist-style), so a missing type falls back to "checklist" to keep
+  // them displaying the same way they always have.
+  function memoType(memo) {
+    return memo.type || "checklist";
+  }
+
   function renderMemoList() {
     if (memos.length === 0) {
       memoList.innerHTML = `<div class="empty-hint">まだメモがありません</div>`;
@@ -1440,32 +1451,38 @@
     }
     memoList.innerHTML = memos
       .map((memo) => {
-        const items = memo.items || [];
-        const checkedCount = items.filter((it) => it.checked).length;
-        const itemsHtml = items
-          .slice(0, MEMO_PREVIEW_MAX)
-          .map(
-            (it) => `
-          <div class="memo-card-item ${it.checked ? "checked" : ""}">
-            <span class="memo-check" data-memo-id="${memo.id}" data-item-id="${it.id}">${it.checked ? "☑" : "☐"}</span>
-            <span>${escapeHtml(it.text)}</span>
-          </div>`
-          )
-          .join("");
-        const moreHtml =
-          items.length > MEMO_PREVIEW_MAX
-            ? `<div class="memo-card-more">他 ${items.length - MEMO_PREVIEW_MAX} 件</div>`
-            : "";
-        const progressHtml = items.length > 0 ? `<div class="memo-progress">${checkedCount}/${items.length} 完了</div>` : "";
+        const bodyHtml =
+          memoType(memo) === "text"
+            ? `<div class="memo-card-content">${escapeHtml(memo.content || "")}</div>`
+            : renderMemoChecklistBody(memo);
         return `
         <div class="memo-card" style="border-left-color:${memo.color || FALLBACK_COLOR}" data-id="${memo.id}">
           <div class="memo-card-title">${escapeHtml(memo.title)}</div>
-          <div class="memo-card-items">${itemsHtml}</div>
-          ${moreHtml}
-          ${progressHtml}
+          ${bodyHtml}
         </div>`;
       })
       .join("");
+  }
+
+  function renderMemoChecklistBody(memo) {
+    const items = memo.items || [];
+    const checkedCount = items.filter((it) => it.checked).length;
+    const itemsHtml = items
+      .slice(0, MEMO_PREVIEW_MAX)
+      .map(
+        (it) => `
+      <div class="memo-card-item ${it.checked ? "checked" : ""}">
+        <span class="memo-check" data-memo-id="${memo.id}" data-item-id="${it.id}">${it.checked ? "☑" : "☐"}</span>
+        <span>${escapeHtml(it.text)}</span>
+      </div>`
+      )
+      .join("");
+    const moreHtml =
+      items.length > MEMO_PREVIEW_MAX
+        ? `<div class="memo-card-more">他 ${items.length - MEMO_PREVIEW_MAX} 件</div>`
+        : "";
+    const progressHtml = items.length > 0 ? `<div class="memo-progress">${checkedCount}/${items.length} 完了</div>` : "";
+    return `<div class="memo-card-items">${itemsHtml}</div>${moreHtml}${progressHtml}`;
   }
 
   memoList.addEventListener("click", (e) => {
@@ -1499,12 +1516,24 @@
     openMemoEdit(null);
   });
 
+  function syncMemoTypeSections() {
+    const type = document.querySelector('input[name="memoType"]:checked').value;
+    memoTextSection.classList.toggle("hidden", type !== "text");
+    memoChecklistSection.classList.toggle("hidden", type !== "checklist");
+  }
+
+  memoTypeRadios.forEach((radio) => radio.addEventListener("change", syncMemoTypeSections));
+
   function openMemoEdit(memo) {
     memoIdInput.value = memo ? memo.id : "";
     memoEditModalTitle.textContent = memo ? "メモを編集" : "メモを追加";
     memoTitleInput.value = memo ? memo.title : "";
     memoColorInput.value = memo ? memo.color || "#16a34a" : "#16a34a";
+    memoContentInput.value = memo ? memo.content || "" : "";
     editingMemoItems = memo ? (memo.items || []).map((it) => ({ ...it })) : [];
+    const type = memo ? memoType(memo) : "text";
+    memoTypeRadios.forEach((radio) => (radio.checked = radio.value === type));
+    syncMemoTypeSections();
     btnDeleteMemo.classList.toggle("hidden", !memo);
     renderMemoItemRows();
     memoEditModal.classList.remove("hidden");
@@ -1553,6 +1582,8 @@
       memoTitleInput.focus();
       return;
     }
+    const type = document.querySelector('input[name="memoType"]:checked').value;
+    const content = memoContentInput.value.trim();
     const items = editingMemoItems
       .map((it) => ({ ...it, text: it.text.trim() }))
       .filter((it) => it.text !== "");
@@ -1561,9 +1592,11 @@
       const memo = memos.find((m) => m.id === id);
       memo.title = title;
       memo.color = memoColorInput.value;
+      memo.type = type;
+      memo.content = content;
       memo.items = items;
     } else {
-      memos.push({ id: uid("memo"), title, color: memoColorInput.value, items, createdAt: Date.now() });
+      memos.push({ id: uid("memo"), title, color: memoColorInput.value, type, content, items, createdAt: Date.now() });
     }
     saveMemos();
     closeModal(memoEditModal);
