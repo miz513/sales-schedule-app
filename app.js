@@ -313,10 +313,63 @@
     return { prefix: "─ ", suffix: " ─", isTime: false };
   }
 
+  const MAX_BANNER_LANES = 2;
+
+  // Multi-day events get a continuous banner spanning the days they cover in
+  // each week-row (like a project bar), instead of a separate pill per day.
+  // Greedily assigns each into the first free lane per row so concurrent
+  // spans stack without overlapping; anything beyond MAX_BANNER_LANES falls
+  // back to the old per-day pill with ▶/─/◀ continuation markers.
+  function computeMonthBanners(dateKeys) {
+    const rowBanners = [];
+    const shownIdsByDate = {};
+    for (let r = 0; r < 6; r++) {
+      const rowStartKey = dateKeys[r * 7];
+      const rowEndKey = dateKeys[r * 7 + 6];
+      const overlapping = events
+        .filter(
+          (ev) =>
+            ev.startDate !== ev.endDate &&
+            matchesFilters(ev) &&
+            ev.startDate <= rowEndKey &&
+            ev.endDate >= rowStartKey
+        )
+        .sort((a, b) => (a.startDate + (a.startTime || "")).localeCompare(b.startDate + (b.startTime || "")));
+
+      const laneEnd = [];
+      const rowResult = [];
+      overlapping.forEach((ev) => {
+        const startCol = Math.max(0, daysBetweenDateKeys(rowStartKey, ev.startDate));
+        const endCol = Math.min(6, daysBetweenDateKeys(rowStartKey, ev.endDate));
+        let lane = -1;
+        for (let l = 0; l < MAX_BANNER_LANES; l++) {
+          if (laneEnd[l] === undefined || laneEnd[l] < startCol) {
+            lane = l;
+            break;
+          }
+        }
+        if (lane === -1) return; // too many concurrent spans; falls back to a normal pill
+        laneEnd[lane] = endCol;
+        rowResult.push({ ev, lane, startCol, endCol });
+        for (let c = startCol; c <= endCol; c++) {
+          const dk = dateKeys[r * 7 + c];
+          (shownIdsByDate[dk] || (shownIdsByDate[dk] = new Set())).add(ev.id);
+        }
+      });
+      rowBanners.push(rowResult);
+    }
+    return { rowBanners, shownIdsByDate };
+  }
+
   function renderMonthView() {
     const monthStart = startOfMonth(state.cursor);
     const gridStart = startOfWeek(monthStart);
     const today = startOfDay(new Date());
+
+    const dateKeys = [];
+    for (let i = 0; i < 42; i++) dateKeys.push(toDateKey(addDays(gridStart, i)));
+    const { rowBanners, shownIdsByDate } = computeMonthBanners(dateKeys);
+    const rowLaneCounts = rowBanners.map((row) => row.reduce((max, b) => Math.max(max, b.lane + 1), 0));
 
     let html = `<div class="weekday-header">`;
     WEEKDAY_LABELS.forEach((label, i) => {
@@ -326,15 +379,18 @@
     html += `</div><div class="month-grid">`;
 
     for (let i = 0; i < 42; i++) {
+      const row = Math.floor(i / 7);
+      const col = i % 7;
       const d = addDays(gridStart, i);
-      const dateKey = toDateKey(d);
+      const dateKey = dateKeys[i];
       const inMonth = d.getMonth() === monthStart.getMonth();
       const isToday = isSameDay(d, today);
       const isSelected = dateKey === state.selectedDateKey;
       const dow = d.getDay();
       const dayNumCls = dow === 0 ? "sun" : dow === 6 ? "sat" : "";
 
-      const dayEvents = getEventsForDate(dateKey);
+      const shownIds = shownIdsByDate[dateKey];
+      const dayEvents = getEventsForDate(dateKey).filter((ev) => !shownIds || !shownIds.has(ev.id));
       const maxShow = 3;
       let eventsHtml = "";
       dayEvents.slice(0, maxShow).forEach((ev) => {
@@ -346,18 +402,37 @@
         eventsHtml += `<div class="more-label">他 ${dayEvents.length - maxShow} 件</div>`;
       }
 
+      const spacerHtml =
+        rowLaneCounts[row] > 0 ? `<div class="banner-spacer" style="--lanes:${rowLaneCounts[row]}"></div>` : "";
+
       html += `
-        <div class="day-cell ${inMonth ? "" : "other-month"} ${isToday ? "today" : ""} ${isSelected ? "selected" : ""}" data-date="${dateKey}">
+        <div class="day-cell ${inMonth ? "" : "other-month"} ${isToday ? "today" : ""} ${isSelected ? "selected" : ""}" style="grid-row:${row + 1};grid-column:${col + 1}" data-date="${dateKey}">
           <div class="day-number ${dayNumCls}">${d.getDate()}</div>
+          ${spacerHtml}
           <div class="day-events">${eventsHtml}</div>
         </div>`;
     }
+
+    rowBanners.forEach((rowResult, r) => {
+      rowResult.forEach(({ ev, lane, startCol, endCol }) => {
+        const isRowStart = dateKeys[r * 7 + startCol] === ev.startDate;
+        const isRowEnd = dateKeys[r * 7 + endCol] === ev.endDate;
+        const prefix = isRowStart ? "" : "◀ ";
+        const suffix = isRowEnd ? "" : " ▶";
+        html += `
+        <div class="month-banner" style="grid-row:${r + 1};grid-column:${startCol + 1} / ${endCol + 2};--lane:${lane};background-color:${getCategoryColor(ev.category)}" data-date="${dateKeys[r * 7 + startCol]}">${prefix}${escapeHtml(ev.title)}${suffix}</div>`;
+      });
+    });
+
     html += `</div>`;
 
     mainArea.innerHTML = html;
 
     mainArea.querySelectorAll(".day-cell").forEach((cell) => {
       cell.addEventListener("click", () => openDayModal(new Date(cell.dataset.date + "T00:00:00")));
+    });
+    mainArea.querySelectorAll(".month-banner").forEach((banner) => {
+      banner.addEventListener("click", () => openDayModal(new Date(banner.dataset.date + "T00:00:00")));
     });
   }
 
