@@ -525,7 +525,7 @@
 
       const shownIds = shownIdsByDate[dateKey];
       const dayEvents = getEventsForDate(dateKey).filter((ev) => !shownIds || !shownIds.has(ev.id));
-      const maxShow = 3;
+      const maxShow = 5;
       let eventsHtml = "";
       dayEvents.slice(0, maxShow).forEach((ev) => {
         const { prefix, suffix, isTime } = monthPillDecoration(ev, dateKey);

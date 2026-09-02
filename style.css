@@ -1389,11 +1389,12 @@ html, body {
   }
   .weekday-header div { font-size: 10px; padding: 2px 0; }
   .day-cell { min-height: 52px; padding: 2px; border-radius: 5px; }
-  .day-number { font-size: 10px; margin-bottom: 1px; }
-  .event-pill { font-size: 8px; padding: 1px 3px; line-height: 1.3; }
+  .day-number { font-size: 9px; margin-bottom: 1px; }
+  .day-events { gap: 1px; }
+  .event-pill { font-size: 7px; padding: 0 2px; line-height: 1.4; }
   .event-pill .pill-time { display: none; } /* too narrow to show both; the title matters more at a glance */
-  .more-label { font-size: 7px; }
-  .holiday-label { font-size: 7px; }
+  .more-label { font-size: 6px; }
+  .holiday-label { font-size: 6px; }
 
   .month-grid {
     --banner-h: 11px;
