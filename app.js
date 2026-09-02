@@ -1625,9 +1625,10 @@
       await window.ScheduleApp.notifyMemo(title, body);
       alert("通知を送信しました");
     } catch (e) {
+      const code = (e && e.code) || "";
       const msg = (e && e.message) || String(e);
-      if (msg.includes("failed-precondition")) {
-        alert("先にメニューから通知を有効にしてください");
+      if (code.includes("failed-precondition") || code.includes("unauthenticated")) {
+        alert("先にメニューから「予定の通知を有効にする」をタップしてください");
       } else {
         alert("通知の送信に失敗しました: " + msg);
       }
