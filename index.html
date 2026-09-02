@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>スケジュール管理</title>
-<link rel="stylesheet" href="style.css?v=42">
+<link rel="stylesheet" href="style.css?v=43">
 </head>
 <body>
 
@@ -66,7 +66,8 @@
           </g>
         </svg>
       </div>
-      <span id="periodLabel" class="period-label" title="タップして今日に戻る"></span>
+      <span id="periodLabel" class="period-label" title="タップして年月を選択"></span>
+      <button id="btnToday" class="today-btn" type="button">今日</button>
     </div>
   </header>
 
@@ -222,6 +223,22 @@
   </div>
 </div>
 
+<!-- 年月選択モーダル -->
+<div id="yearMonthModal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>年月を選択</h2>
+      <button class="close-btn" data-close="yearMonthModal">×</button>
+    </div>
+    <div class="year-nav">
+      <button type="button" id="btnYearPrev" aria-label="前の年">‹</button>
+      <span id="yearMonthYearLabel"></span>
+      <button type="button" id="btnYearNext" aria-label="次の年">›</button>
+    </div>
+    <div id="monthPickerGrid" class="month-picker-grid"></div>
+  </div>
+</div>
+
 <!-- 種別管理モーダル -->
 <div id="categoryModal" class="modal-overlay hidden">
   <div class="modal">
@@ -254,7 +271,7 @@
   </div>
 </div>
 
-<script src="app.js?v=40"></script>
+<script src="app.js?v=41"></script>
 <script type="module" src="firebase-sync.js?v=5"></script>
 <script>
   if ("serviceWorker" in navigator) {

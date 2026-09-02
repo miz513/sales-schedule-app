@@ -172,6 +172,12 @@
 
   const mainArea = document.getElementById("mainArea");
   const periodLabel = document.getElementById("periodLabel");
+  const btnToday = document.getElementById("btnToday");
+  const yearMonthModal = document.getElementById("yearMonthModal");
+  const btnYearPrev = document.getElementById("btnYearPrev");
+  const btnYearNext = document.getElementById("btnYearNext");
+  const yearMonthYearLabel = document.getElementById("yearMonthYearLabel");
+  const monthPickerGrid = document.getElementById("monthPickerGrid");
   const undoToast = document.getElementById("undoToast");
   const undoToastText = document.getElementById("undoToastText");
   const btnUndo = document.getElementById("btnUndo");
@@ -690,7 +696,7 @@
     btn.addEventListener("click", () => closeModal(document.getElementById(btn.dataset.close)));
   });
 
-  [dayModal, eventModal, categoryModal, summaryModal].forEach((overlay) => {
+  [dayModal, eventModal, categoryModal, summaryModal, yearMonthModal].forEach((overlay) => {
     overlay.addEventListener("click", (e) => {
       if (e.target === overlay) closeModal(overlay);
     });
@@ -698,7 +704,7 @@
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
-      [dayModal, eventModal, categoryModal, summaryModal].forEach((overlay) => {
+      [dayModal, eventModal, categoryModal, summaryModal, yearMonthModal].forEach((overlay) => {
         if (!overlay.classList.contains("hidden")) closeModal(overlay);
       });
     }
@@ -726,12 +732,49 @@
     playNavAnimation(direction);
   }
 
-  // Tap the period label ("2026年9月") to jump straight back to today,
-  // since the dedicated today button was removed in favor of swiping.
-  periodLabel.addEventListener("click", () => {
+  btnToday.addEventListener("click", () => {
     state.cursor = startOfDay(new Date());
     render();
     playNavAnimation("next");
+  });
+
+  // ---------- Year/month picker ----------
+
+  let pickerYear = state.cursor.getFullYear();
+
+  function renderMonthPicker() {
+    yearMonthYearLabel.textContent = `${pickerYear}年`;
+    monthPickerGrid.innerHTML = "";
+    for (let m = 0; m < 12; m++) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = `${m + 1}月`;
+      if (pickerYear === state.cursor.getFullYear() && m === state.cursor.getMonth()) {
+        btn.classList.add("active");
+      }
+      btn.addEventListener("click", () => {
+        state.cursor = new Date(pickerYear, m, 1);
+        closeModal(yearMonthModal);
+        render();
+        playNavAnimation("next");
+      });
+      monthPickerGrid.appendChild(btn);
+    }
+  }
+
+  periodLabel.addEventListener("click", () => {
+    pickerYear = state.cursor.getFullYear();
+    renderMonthPicker();
+    yearMonthModal.classList.remove("hidden");
+  });
+
+  btnYearPrev.addEventListener("click", () => {
+    pickerYear -= 1;
+    renderMonthPicker();
+  });
+  btnYearNext.addEventListener("click", () => {
+    pickerYear += 1;
+    renderMonthPicker();
   });
 
   function setView(view) {

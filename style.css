@@ -278,6 +278,66 @@ html, body {
   background: #f0f2f5;
 }
 
+.today-btn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.today-btn:hover { background: #f0f2f5; }
+
+.year-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  margin: 4px 0 18px;
+}
+.year-nav span {
+  font-size: 18px;
+  font-weight: 700;
+  min-width: 80px;
+  text-align: center;
+}
+.year-nav button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--text);
+  cursor: pointer;
+  padding: 4px 12px;
+  border-radius: 6px;
+}
+.year-nav button:hover { background: #f0f2f5; color: var(--primary); }
+
+.month-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.month-picker-grid button {
+  padding: 14px 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+}
+.month-picker-grid button:hover { background: #f0f2f5; }
+.month-picker-grid button.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
 .primary-btn {
   background: var(--primary);
   color: #fff;
