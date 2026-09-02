@@ -50,6 +50,37 @@ html, body {
   color: var(--text-muted);
   font-size: 14px;
 }
+.spin-penguin {
+  font-size: 40px;
+  margin-bottom: 10px;
+  animation: penguinSpin 1.1s linear infinite;
+}
+@keyframes penguinSpin {
+  to { transform: rotate(360deg); }
+}
+
+.nav-penguin {
+  position: fixed;
+  top: 50%;
+  left: -40px;
+  font-size: 32px;
+  line-height: 1;
+  pointer-events: none;
+  z-index: 1200;
+  opacity: 0;
+}
+.nav-penguin.sliding-next { animation: penguinSlideNext 0.55s ease-in-out; }
+.nav-penguin.sliding-prev { animation: penguinSlidePrev 0.55s ease-in-out; }
+@keyframes penguinSlideNext {
+  0% { left: -40px; opacity: 1; transform: translateY(-50%) scaleX(1); }
+  85% { opacity: 1; }
+  100% { left: calc(100% + 10px); opacity: 0; transform: translateY(-50%) scaleX(1); }
+}
+@keyframes penguinSlidePrev {
+  0% { left: calc(100% + 10px); opacity: 1; transform: translateY(-50%) scaleX(-1); }
+  85% { opacity: 1; }
+  100% { left: -40px; opacity: 0; transform: translateY(-50%) scaleX(-1); }
+}
 .auth-gate-box p {
   color: var(--text-muted);
   font-size: 14px;

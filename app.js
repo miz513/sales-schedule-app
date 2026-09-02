@@ -171,6 +171,7 @@
   // ---------- DOM references ----------
 
   const mainArea = document.getElementById("mainArea");
+  const navPenguin = document.getElementById("navPenguin");
   const periodLabel = document.getElementById("periodLabel");
   const undoToast = document.getElementById("undoToast");
   const undoToastText = document.getElementById("undoToastText");
@@ -714,6 +715,10 @@
     mainArea.classList.remove("anim-next", "anim-prev");
     void mainArea.offsetWidth; // force reflow so the animation restarts every time
     mainArea.classList.add(direction === "next" ? "anim-next" : "anim-prev");
+
+    navPenguin.classList.remove("sliding-next", "sliding-prev");
+    void navPenguin.offsetWidth;
+    navPenguin.classList.add(direction === "next" ? "sliding-next" : "sliding-prev");
   }
 
   function navigate(direction) {

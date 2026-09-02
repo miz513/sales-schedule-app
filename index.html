@@ -5,14 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>スケジュール管理</title>
-<link rel="stylesheet" href="style.css?v=32">
+<link rel="stylesheet" href="style.css?v=33">
 </head>
 <body>
 
 <div id="authGate" class="auth-gate">
   <div class="auth-gate-box">
     <div class="auth-gate-title">スケジュール管理</div>
-    <div id="authGateLoading" class="auth-gate-loading">読み込み中…</div>
+    <div id="authGateLoading" class="auth-gate-loading">
+      <div class="spin-penguin" aria-hidden="true">🐧</div>
+      <div>読み込み中…</div>
+    </div>
     <div id="authGatePrompt" class="hidden">
       <div id="inAppBrowserWarning" class="in-app-warning hidden">
         <strong>LINEなどのアプリ内ブラウザではログインできません。</strong>
@@ -24,6 +27,8 @@
     </div>
   </div>
 </div>
+
+<div id="navPenguin" class="nav-penguin" aria-hidden="true">🐧</div>
 
 <div class="app">
 
@@ -207,7 +212,7 @@
   </div>
 </div>
 
-<script src="app.js?v=32"></script>
+<script src="app.js?v=33"></script>
 <script type="module" src="firebase-sync.js?v=5"></script>
 <script>
   if ("serviceWorker" in navigator) {
