@@ -192,6 +192,92 @@
     return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
   }
 
+  // ---------- Japanese public holidays ----------
+  // Computed from the standing rules (fixed dates, nth-weekday-of-month, and
+  // the equinox approximation formula below) rather than a hardcoded table,
+  // so this stays correct for any year without needing yearly upkeep. The
+  // equinox formula is the standard one used across Japanese calendar
+  // software and holds for 1980–2099.
+
+  function nthWeekdayOfMonth(year, month, weekday, n) {
+    const firstWeekday = new Date(year, month - 1, 1).getDay();
+    return 1 + ((weekday - firstWeekday + 7) % 7) + (n - 1) * 7;
+  }
+
+  function vernalEquinoxDay(year) {
+    return Math.floor(20.8431 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4));
+  }
+
+  function autumnalEquinoxDay(year) {
+    return Math.floor(23.2488 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4));
+  }
+
+  function computeBaseHolidays(year) {
+    const h = {};
+    const add = (m, d, name) => {
+      h[`${year}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`] = name;
+    };
+    add(1, 1, "元日");
+    add(1, nthWeekdayOfMonth(year, 1, 1, 2), "成人の日");
+    add(2, 11, "建国記念の日");
+    add(2, 23, "天皇誕生日");
+    add(3, vernalEquinoxDay(year), "春分の日");
+    add(4, 29, "昭和の日");
+    add(5, 3, "憲法記念日");
+    add(5, 4, "みどりの日");
+    add(5, 5, "こどもの日");
+    add(7, nthWeekdayOfMonth(year, 7, 1, 3), "海の日");
+    add(8, 11, "山の日");
+    add(9, nthWeekdayOfMonth(year, 9, 1, 3), "敬老の日");
+    add(9, autumnalEquinoxDay(year), "秋分の日");
+    add(10, nthWeekdayOfMonth(year, 10, 1, 2), "スポーツの日");
+    add(11, 3, "文化の日");
+    add(11, 23, "勤労感謝の日");
+    return h;
+  }
+
+  const holidayCache = {};
+
+  // Adds 振替休日 (a holiday landing on Sunday pushes to the next non-holiday
+  // day) and 国民の休日 (a plain weekday sandwiched between two holidays
+  // becomes one too) on top of the base fixed/computed holidays.
+  function computeJapaneseHolidays(year) {
+    if (holidayCache[year]) return holidayCache[year];
+    const holidays = computeBaseHolidays(year);
+
+    Object.keys(holidays)
+      .sort()
+      .forEach((dk) => {
+        const d = new Date(dk + "T00:00:00");
+        if (d.getDay() !== 0) return;
+        const next = new Date(d);
+        do {
+          next.setDate(next.getDate() + 1);
+        } while (holidays[toDateKey(next)]);
+        holidays[toDateKey(next)] = "振替休日";
+      });
+
+    Object.keys(holidays)
+      .sort()
+      .forEach((dk) => {
+        const d = new Date(dk + "T00:00:00");
+        const between = addDays(d, 1);
+        const after = addDays(d, 2);
+        const betweenKey = toDateKey(between);
+        if (!holidays[betweenKey] && between.getDay() !== 0 && holidays[toDateKey(after)]) {
+          holidays[betweenKey] = "国民の休日";
+        }
+      });
+
+    holidayCache[year] = holidays;
+    return holidays;
+  }
+
+  function getHolidayName(dateKey) {
+    const year = parseInt(dateKey.slice(0, 4), 10);
+    return computeJapaneseHolidays(year)[dateKey];
+  }
+
   // ---------- DOM references ----------
 
   const mainArea = document.getElementById("mainArea");
@@ -433,7 +519,9 @@
       const isToday = isSameDay(d, today);
       const isSelected = dateKey === state.selectedDateKey;
       const dow = d.getDay();
-      const dayNumCls = dow === 0 ? "sun" : dow === 6 ? "sat" : "";
+      const holidayName = getHolidayName(dateKey);
+      const dayNumCls = dow === 0 || holidayName ? "sun" : dow === 6 ? "sat" : "";
+      const holidayHtml = holidayName ? `<div class="holiday-label">${escapeHtml(holidayName)}</div>` : "";
 
       const shownIds = shownIdsByDate[dateKey];
       const dayEvents = getEventsForDate(dateKey).filter((ev) => !shownIds || !shownIds.has(ev.id));
@@ -454,6 +542,7 @@
       html += `
         <div class="day-cell ${inMonth ? "" : "other-month"} ${isToday ? "today" : ""} ${isSelected ? "selected" : ""}" style="grid-row:${row + 1};grid-column:${col + 1}" data-date="${dateKey}">
           <div class="day-number ${dayNumCls}">${d.getDate()}</div>
+          ${holidayHtml}
           ${spacerHtml}
           <div class="day-events">${eventsHtml}</div>
         </div>`;
@@ -492,6 +581,8 @@
       const dateKey = toDateKey(d);
       const isToday = isSameDay(d, today);
       const dow = d.getDay();
+      const holidayName = getHolidayName(dateKey);
+      const dnumCls = dow === 0 || holidayName ? "sun" : dow === 6 ? "sat" : "";
 
       const dayEvents = getEventsForDate(dateKey);
       let eventsHtml = "";
@@ -516,7 +607,8 @@
         <div class="week-day-col ${isToday ? "today" : ""}" data-date="${dateKey}">
           <div class="week-day-header">
             <div class="dow">${WEEKDAY_LABELS[dow]}</div>
-            <div class="dnum">${d.getDate()}</div>
+            <div class="dnum ${dnumCls}">${d.getDate()}</div>
+            ${holidayName ? `<div class="holiday-label">${escapeHtml(holidayName)}</div>` : ""}
           </div>
           <div class="week-day-body">${eventsHtml}</div>
           <button class="week-add-btn" data-date="${dateKey}">＋ 追加</button>
@@ -549,7 +641,8 @@
       if (state.view === "month") renderMonthView();
     }
 
-    dayModalTitle.textContent = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日（${WEEKDAY_LABELS[date.getDay()]}）の予定`;
+    const dayHolidayName = getHolidayName(dateKey);
+    dayModalTitle.textContent = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日（${WEEKDAY_LABELS[date.getDay()]}${dayHolidayName ? "・" + dayHolidayName : ""}）の予定`;
 
     const dayEvents = getEventsForDate(dateKey);
     if (dayEvents.length === 0) {
