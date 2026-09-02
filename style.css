@@ -350,7 +350,6 @@ html, body {
 }
 .primary-btn:hover { background: var(--primary-dark); }
 .primary-btn.full-width { width: 100%; margin-top: 12px; }
-.secondary-btn.full-width { width: 100%; margin-top: 8px; }
 
 .secondary-btn {
   background: var(--surface);
@@ -1029,10 +1028,30 @@ html, body {
   min-width: 0;
 }
 .memo-card:hover { background: #f8fafc; }
-.memo-card-title {
-  font-weight: 700;
+.memo-card-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 6px;
   margin-bottom: 6px;
 }
+.memo-card-title {
+  font-weight: 700;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+.memo-notify-btn {
+  flex-shrink: 0;
+  display: flex;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px;
+}
+.memo-notify-btn svg { width: 16px; height: 16px; }
+.memo-notify-btn:hover { color: var(--primary); }
+.memo-notify-btn:disabled { opacity: 0.4; cursor: default; }
 .memo-card-content {
   font-size: 13px;
   color: var(--text);

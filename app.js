@@ -245,7 +245,6 @@
   const btnAddMemoItem = document.getElementById("btnAddMemoItem");
   const btnDeleteMemo = document.getElementById("btnDeleteMemo");
   const btnSaveMemo = document.getElementById("btnSaveMemo");
-  const btnNotifyMemoNow = document.getElementById("btnNotifyMemoNow");
 
   const dayModal = document.getElementById("dayModal");
   const dayModalTitle = document.getElementById("dayModalTitle");
@@ -1458,7 +1457,12 @@
             : renderMemoChecklistBody(memo);
         return `
         <div class="memo-card" style="border-left-color:${memo.color || FALLBACK_COLOR}" data-id="${memo.id}">
-          <div class="memo-card-title">${escapeHtml(memo.title)}</div>
+          <div class="memo-card-title-row">
+            <div class="memo-card-title">${escapeHtml(memo.title)}</div>
+            <button type="button" class="memo-notify-btn" data-id="${memo.id}" title="今すぐ通知に出す" aria-label="今すぐ通知に出す">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            </button>
+          </div>
           ${bodyHtml}
         </div>`;
       })
@@ -1481,7 +1485,51 @@
     return `<div class="memo-card-items">${itemsHtml}</div>${progressHtml}`;
   }
 
+  const NOTIFY_BODY_MAX = 300;
+
+  function memoNotifyBody(memo) {
+    let body;
+    if (memoType(memo) === "text") {
+      body = memo.content || "";
+    } else {
+      body = (memo.items || [])
+        .filter((it) => it.text.trim() !== "")
+        .map((it) => `${it.checked ? "☑" : "☐"} ${it.text.trim()}`)
+        .join("\n");
+    }
+    return truncate(body || "（内容なし）", NOTIFY_BODY_MAX);
+  }
+
+  async function sendMemoNotificationNow(memo, triggerBtn) {
+    if (!window.ScheduleApp.notifyMemo) {
+      alert("通知機能の読み込みに失敗しました。ページを再読み込みしてください。");
+      return;
+    }
+    if (triggerBtn) triggerBtn.disabled = true;
+    try {
+      await window.ScheduleApp.notifyMemo(memo.title, memoNotifyBody(memo));
+      alert("通知を送信しました");
+    } catch (e) {
+      const code = (e && e.code) || "";
+      const msg = (e && e.message) || String(e);
+      if (code.includes("failed-precondition") || code.includes("unauthenticated")) {
+        alert("先にメニューから「予定の通知を有効にする」をタップしてください");
+      } else {
+        alert("通知の送信に失敗しました: " + msg);
+      }
+    } finally {
+      if (triggerBtn) triggerBtn.disabled = false;
+    }
+  }
+
   memoList.addEventListener("click", (e) => {
+    const notifyBtn = e.target.closest(".memo-notify-btn");
+    if (notifyBtn) {
+      e.stopPropagation();
+      const memo = memos.find((m) => m.id === notifyBtn.dataset.id);
+      if (memo) sendMemoNotificationNow(memo, notifyBtn);
+      return;
+    }
     const check = e.target.closest(".memo-check");
     if (check) {
       e.stopPropagation();
@@ -1607,43 +1655,6 @@
     closeModal(memoEditModal);
     renderMemoList();
     memoModal.classList.remove("hidden");
-  });
-
-  const NOTIFY_BODY_MAX = 300;
-
-  btnNotifyMemoNow.addEventListener("click", async () => {
-    const title = memoTitleInput.value.trim() || "メモ";
-    const type = document.querySelector('input[name="memoType"]:checked').value;
-    let body;
-    if (type === "text") {
-      body = memoContentInput.value.trim();
-    } else {
-      body = editingMemoItems
-        .filter((it) => it.text.trim() !== "")
-        .map((it) => `${it.checked ? "☑" : "☐"} ${it.text.trim()}`)
-        .join("\n");
-    }
-    body = truncate(body || "（内容なし）", NOTIFY_BODY_MAX);
-
-    if (!window.ScheduleApp.notifyMemo) {
-      alert("通知機能の読み込みに失敗しました。ページを再読み込みしてください。");
-      return;
-    }
-    btnNotifyMemoNow.disabled = true;
-    try {
-      await window.ScheduleApp.notifyMemo(title, body);
-      alert("通知を送信しました");
-    } catch (e) {
-      const code = (e && e.code) || "";
-      const msg = (e && e.message) || String(e);
-      if (code.includes("failed-precondition") || code.includes("unauthenticated")) {
-        alert("先にメニューから「予定の通知を有効にする」をタップしてください");
-      } else {
-        alert("通知の送信に失敗しました: " + msg);
-      }
-    } finally {
-      btnNotifyMemoNow.disabled = false;
-    }
   });
 
   btnDeleteMemo.addEventListener("click", () => {
