@@ -228,10 +228,11 @@
 
   const btnMemo = document.getElementById("btnMemo");
   const memoModal = document.getElementById("memoModal");
-  const memoModalBox = memoModal.querySelector(".modal");
+  const memoModalBody = memoModal.querySelector(".modal-body");
   const memoList = document.getElementById("memoList");
   const btnAddMemo = document.getElementById("btnAddMemo");
   const memoEditModal = document.getElementById("memoEditModal");
+  const memoEditModalBody = memoEditModal.querySelector(".modal-body");
   const memoEditModalTitle = document.getElementById("memoEditModalTitle");
   const memoIdInput = document.getElementById("memoId");
   const memoTitleInput = document.getElementById("memoTitleInput");
@@ -1434,7 +1435,6 @@
 
   // ---------- Memo ----------
 
-  const MEMO_PREVIEW_MAX = 5;
   let editingMemoItems = [];
 
   // Memos saved before the type toggle existed only ever stored items
@@ -1468,7 +1468,6 @@
     const items = memo.items || [];
     const checkedCount = items.filter((it) => it.checked).length;
     const itemsHtml = items
-      .slice(0, MEMO_PREVIEW_MAX)
       .map(
         (it) => `
       <div class="memo-card-item ${it.checked ? "checked" : ""}">
@@ -1477,12 +1476,8 @@
       </div>`
       )
       .join("");
-    const moreHtml =
-      items.length > MEMO_PREVIEW_MAX
-        ? `<div class="memo-card-more">他 ${items.length - MEMO_PREVIEW_MAX} 件</div>`
-        : "";
     const progressHtml = items.length > 0 ? `<div class="memo-progress">${checkedCount}/${items.length} 完了</div>` : "";
-    return `<div class="memo-card-items">${itemsHtml}</div>${moreHtml}${progressHtml}`;
+    return `<div class="memo-card-items">${itemsHtml}</div>${progressHtml}`;
   }
 
   memoList.addEventListener("click", (e) => {
@@ -1508,7 +1503,7 @@
   btnMemo.addEventListener("click", () => {
     renderMemoList();
     memoModal.classList.remove("hidden");
-    memoList.scrollTop = 0;
+    memoModalBody.scrollTop = 0;
   });
 
   btnAddMemo.addEventListener("click", () => {
@@ -1537,7 +1532,7 @@
     btnDeleteMemo.classList.toggle("hidden", !memo);
     renderMemoItemRows();
     memoEditModal.classList.remove("hidden");
-    memoEditModal.querySelector(".modal").scrollTop = 0;
+    memoEditModalBody.scrollTop = 0;
     memoTitleInput.focus();
   }
 
