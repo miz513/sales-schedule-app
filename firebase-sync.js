@@ -14,7 +14,6 @@ import {
   getDoc,
   setDoc,
   updateDoc,
-  arrayUnion,
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 import {
   getMessaging,
@@ -209,7 +208,13 @@ async function registerNotificationToken() {
     const messaging = getMessaging(app);
     const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: registration });
     if (token) {
-      await updateDoc(userDocRef(currentUser.uid), { fcmTokens: arrayUnion(token) });
+      // Replaces rather than accumulates: this app is one account per device
+      // in practice, and a plain union let stale tokens from past service
+      // worker updates pile up, which meant every reminder went out once per
+      // leftover token — i.e. duplicate notifications for the same event.
+      // This runs on every load once permission is granted, so it also
+      // self-heals any tokens that already piled up before this fix.
+      await updateDoc(userDocRef(currentUser.uid), { fcmTokens: [token] });
       updateNotifyStatus("通知: 有効");
       ensureForegroundHandler(messaging, registration);
     }
