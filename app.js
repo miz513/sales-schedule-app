@@ -613,7 +613,6 @@
     clearTimeout(undoTimer);
     undoToastText.textContent = message;
     undoToast.classList.remove("hidden");
-    document.body.classList.add("toast-visible");
     btnUndo.onclick = () => {
       events.push(...deletedEvents);
       saveEvents();
@@ -627,7 +626,6 @@
   function hideUndoToast() {
     clearTimeout(undoTimer);
     undoToast.classList.add("hidden");
-    document.body.classList.remove("toast-visible");
   }
 
   btnDeleteEvent.addEventListener("click", () => {
