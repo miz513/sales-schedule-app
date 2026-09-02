@@ -1291,7 +1291,6 @@
   function setupMascotAnimation() {
     const MASCOT_ACTIONS = [
       { cls: "action-flap", duration: 900 },
-      { cls: "action-look", duration: 1500 },
       { cls: "action-jump", duration: 500 },
       { cls: "action-wave", duration: 1300 },
     ];
