@@ -69,17 +69,26 @@ html, body {
   z-index: 1200;
   opacity: 0;
 }
-.nav-penguin.sliding-next { animation: penguinSlideNext 0.55s ease-in-out; }
-.nav-penguin.sliding-prev { animation: penguinSlidePrev 0.55s ease-in-out; }
+.nav-penguin.sliding-next { animation: penguinSlideNext 0.6s ease-in-out; }
+.nav-penguin.sliding-prev { animation: penguinSlidePrev 0.6s ease-in-out; }
+
+/* Lying on its belly (rotated on its side) with a little wobble, like sliding
+   across ice nose-first, rather than standing up and walking sideways. */
 @keyframes penguinSlideNext {
-  0% { left: -40px; opacity: 1; transform: translateY(-50%) scaleX(1); }
-  85% { opacity: 1; }
-  100% { left: calc(100% + 10px); opacity: 0; transform: translateY(-50%) scaleX(1); }
+  0%   { left: -40px;            opacity: 1; transform: translateY(calc(-50% - 5px)) rotate(-84deg); }
+  20%  {                                     transform: translateY(calc(-50% + 5px)) rotate(-96deg); }
+  40%  {                                     transform: translateY(calc(-50% - 5px)) rotate(-84deg); }
+  60%  {                                     transform: translateY(calc(-50% + 5px)) rotate(-96deg); }
+  80%  { opacity: 1;                         transform: translateY(calc(-50% - 5px)) rotate(-84deg); }
+  100% { left: calc(100% + 10px); opacity: 0; transform: translateY(-50%) rotate(-90deg); }
 }
 @keyframes penguinSlidePrev {
-  0% { left: calc(100% + 10px); opacity: 1; transform: translateY(-50%) scaleX(-1); }
-  85% { opacity: 1; }
-  100% { left: -40px; opacity: 0; transform: translateY(-50%) scaleX(-1); }
+  0%   { left: calc(100% + 10px); opacity: 1; transform: translateY(calc(-50% - 5px)) rotate(96deg) scaleY(-1); }
+  20%  {                                      transform: translateY(calc(-50% + 5px)) rotate(84deg) scaleY(-1); }
+  40%  {                                      transform: translateY(calc(-50% - 5px)) rotate(96deg) scaleY(-1); }
+  60%  {                                      transform: translateY(calc(-50% + 5px)) rotate(84deg) scaleY(-1); }
+  80%  { opacity: 1;                          transform: translateY(calc(-50% - 5px)) rotate(96deg) scaleY(-1); }
+  100% { left: -40px;             opacity: 0; transform: translateY(-50%) rotate(90deg) scaleY(-1); }
 }
 .auth-gate-box p {
   color: var(--text-muted);
