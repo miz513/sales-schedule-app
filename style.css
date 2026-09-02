@@ -59,36 +59,28 @@ html, body {
   to { transform: rotate(360deg); }
 }
 
-.nav-penguin {
-  position: fixed;
-  top: 50%;
-  left: -60px;
-  line-height: 1;
-  pointer-events: none;
-  z-index: 1200;
-  opacity: 0;
+.header-mascot {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  margin-left: 10px;
 }
-.nav-penguin.sliding-next { animation: penguinSlideNext 0.6s ease-in-out; }
-.nav-penguin.sliding-prev { animation: penguinSlidePrev 0.6s ease-in-out; }
+.mascot-penguin {
+  transform-origin: bottom center;
+  flex-shrink: 0;
+}
+.mascot-parent {
+  animation: penguinWaddle 0.7s ease-in-out infinite;
+}
+.mascot-child {
+  animation: penguinWaddle 0.55s ease-in-out infinite;
+  animation-delay: 0.12s;
+}
+@keyframes penguinWaddle {
+  0%, 100% { transform: rotate(-7deg); }
+  50% { transform: rotate(7deg); }
+}
 
-/* The artwork is drawn lying down facing left, so sliding rightward ("next")
-   mirrors it to face forward; a little wobble sells the ice-sliding motion. */
-@keyframes penguinSlideNext {
-  0%   { left: -60px;            opacity: 1; transform: translateY(calc(-50% - 5px)) scaleX(-1) rotate(4deg); }
-  20%  {                                     transform: translateY(calc(-50% + 5px)) scaleX(-1) rotate(-4deg); }
-  40%  {                                     transform: translateY(calc(-50% - 5px)) scaleX(-1) rotate(4deg); }
-  60%  {                                     transform: translateY(calc(-50% + 5px)) scaleX(-1) rotate(-4deg); }
-  80%  { opacity: 1;                         transform: translateY(calc(-50% - 5px)) scaleX(-1) rotate(4deg); }
-  100% { left: calc(100% + 20px); opacity: 0; transform: translateY(-50%) scaleX(-1) rotate(0deg); }
-}
-@keyframes penguinSlidePrev {
-  0%   { left: calc(100% + 20px); opacity: 1; transform: translateY(calc(-50% - 5px)) rotate(-4deg); }
-  20%  {                                      transform: translateY(calc(-50% + 5px)) rotate(4deg); }
-  40%  {                                      transform: translateY(calc(-50% - 5px)) rotate(-4deg); }
-  60%  {                                      transform: translateY(calc(-50% + 5px)) rotate(4deg); }
-  80%  { opacity: 1;                          transform: translateY(calc(-50% - 5px)) rotate(-4deg); }
-  100% { left: -60px;             opacity: 0; transform: translateY(-50%) rotate(0deg); }
-}
 .auth-gate-box p {
   color: var(--text-muted);
   font-size: 14px;
@@ -217,6 +209,11 @@ html, body {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   flex-wrap: wrap;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
 }
 
 .topbar h1 {
