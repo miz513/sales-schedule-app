@@ -13,7 +13,19 @@ import {
   doc,
   getDoc,
   setDoc,
+  updateDoc,
+  arrayUnion,
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import {
+  getMessaging,
+  isSupported as isMessagingSupported,
+  getToken,
+  onMessage,
+} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging.js";
+
+// Generated in Firebase Console → Project settings → Cloud Messaging → Web
+// configuration → "Generate key pair". Public by design (safe to ship).
+const VAPID_KEY = "BMV_1kt7evb-gDJ4ywcVLefPpMCW7GotzlxC9kavp6Fs9-xgJ9EsUeCXDChsM8WzHN9y0Mif0fZTCfkTwt7P6tc";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDlTK2CEy0CJyz7RofxuHi-H37zr-V4i0M",
@@ -36,6 +48,8 @@ const provider = new GoogleAuthProvider();
 const btnSignIn = document.getElementById("btnSignIn");
 const btnSignOut = document.getElementById("btnSignOut");
 const syncStatus = document.getElementById("syncStatus");
+const btnEnableNotify = document.getElementById("btnEnableNotify");
+const notifyStatus = document.getElementById("notifyStatus");
 
 const authGate = document.getElementById("authGate");
 const authGateLoading = document.getElementById("authGateLoading");
@@ -151,4 +165,65 @@ btnGateSignIn.addEventListener("click", doSignIn);
 
 btnSignOut.addEventListener("click", async () => {
   await signOut(auth);
+});
+
+// ---------- Event reminder push notifications ----------
+// A scheduled Cloud Function checks everyone's events every few minutes and
+// sends a push 30 minutes before each one starts, to whichever tokens are
+// registered here. Foreground messages don't produce a system notification
+// automatically, so onMessage below shows one manually in that case.
+
+function updateNotifyStatus(text) {
+  if (notifyStatus) notifyStatus.textContent = text;
+}
+
+async function registerNotificationToken() {
+  if (!currentUser) return;
+  if (!(await isMessagingSupported())) {
+    updateNotifyStatus("この端末・ブラウザは通知に対応していません");
+    return;
+  }
+  if (Notification.permission !== "granted") return;
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    const messaging = getMessaging(app);
+    const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: registration });
+    if (token) {
+      await updateDoc(userDocRef(currentUser.uid), { fcmTokens: arrayUnion(token) });
+      updateNotifyStatus("通知: 有効");
+      onMessage(messaging, (payload) => {
+        const title = (payload.notification && payload.notification.title) || "予定";
+        const body = (payload.notification && payload.notification.body) || "";
+        new Notification(title, { body });
+      });
+    }
+  } catch (e) {
+    console.error(e);
+    updateNotifyStatus(`通知の設定に失敗しました: ${e.code || e.message || e}`);
+  }
+}
+
+btnEnableNotify.addEventListener("click", async () => {
+  if (!currentUser) {
+    updateNotifyStatus("先にログインしてください");
+    return;
+  }
+  if (!("Notification" in window)) {
+    updateNotifyStatus("この端末・ブラウザは通知に対応していません");
+    return;
+  }
+  const permission = await Notification.requestPermission();
+  if (permission !== "granted") {
+    updateNotifyStatus("通知が許可されませんでした");
+    return;
+  }
+  await registerNotificationToken();
+});
+
+onAuthStateChanged(auth, (user) => {
+  if (user && "Notification" in window && Notification.permission === "granted") {
+    registerNotificationToken();
+  } else if (user) {
+    updateNotifyStatus("通知: 無効（メニューから有効にできます）");
+  }
 });

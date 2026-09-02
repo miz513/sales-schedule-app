@@ -114,6 +114,8 @@
         <button id="btnSignIn">Googleでログイン（同期）</button>
         <button id="btnSignOut" class="hidden">ログアウト</button>
         <div id="syncStatus" class="sync-status"></div>
+        <button id="btnEnableNotify">予定の通知を有効にする</button>
+        <div id="notifyStatus" class="sync-status"></div>
         <button id="btnMonthlySummary">月次集計</button>
       </div>
     </div>
@@ -343,10 +345,10 @@
 </div>
 
 <script src="app.js?v=46"></script>
-<script type="module" src="firebase-sync.js?v=5"></script>
+<script type="module" src="firebase-sync.js?v=6"></script>
 <script>
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("sw.js?v=1");
+    navigator.serviceWorker.register("sw.js?v=2");
   }
 </script>
 </body>

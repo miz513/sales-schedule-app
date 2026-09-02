@@ -1,3 +1,28 @@
+// Also handles background push notifications (event reminders). Firebase
+// Messaging looks for its handler on whichever service worker controls the
+// page, so this lives in the same file as the cache-busting logic below
+// rather than a separate firebase-messaging-sw.js — registering two workers
+// at the same root scope would just have one silently override the other.
+importScripts("https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js");
+importScripts("https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js");
+
+firebase.initializeApp({
+  apiKey: "AIzaSyDlTK2CEy0CJyz7RofxuHi-H37zr-V4i0M",
+  authDomain: "sales-schedule-app-621b9.firebaseapp.com",
+  projectId: "sales-schedule-app-621b9",
+  storageBucket: "sales-schedule-app-621b9.firebasestorage.app",
+  messagingSenderId: "1022100366188",
+  appId: "1:1022100366188:web:19113b8e8cd840fe65c949",
+});
+
+const messaging = firebase.messaging();
+
+messaging.onBackgroundMessage((payload) => {
+  const title = (payload.notification && payload.notification.title) || "予定";
+  const body = (payload.notification && payload.notification.body) || "";
+  self.registration.showNotification(title, { body });
+});
+
 // Forces every request through the network instead of the browser's own HTTP
 // cache. iOS "Add to Home Screen" apps are known to hold onto a stale copy of
 // the page for a long time without this; this keeps updates showing up promptly.
