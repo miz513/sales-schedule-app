@@ -323,6 +323,7 @@
   function computeMonthBanners(dateKeys) {
     const rowBanners = [];
     const shownIdsByDate = {};
+    const colLaneCounts = []; // colLaneCounts[i] = lanes reserved for that specific day cell only
     for (let r = 0; r < 6; r++) {
       const rowStartKey = dateKeys[r * 7];
       const rowEndKey = dateKeys[r * 7 + 6];
@@ -354,11 +355,13 @@
         for (let c = startCol; c <= endCol; c++) {
           const dk = dateKeys[r * 7 + c];
           (shownIdsByDate[dk] || (shownIdsByDate[dk] = new Set())).add(ev.id);
+          const idx = r * 7 + c;
+          colLaneCounts[idx] = Math.max(colLaneCounts[idx] || 0, lane + 1);
         }
       });
       rowBanners.push(rowResult);
     }
-    return { rowBanners, shownIdsByDate };
+    return { rowBanners, shownIdsByDate, colLaneCounts };
   }
 
   function renderMonthView() {
@@ -368,8 +371,7 @@
 
     const dateKeys = [];
     for (let i = 0; i < 42; i++) dateKeys.push(toDateKey(addDays(gridStart, i)));
-    const { rowBanners, shownIdsByDate } = computeMonthBanners(dateKeys);
-    const rowLaneCounts = rowBanners.map((row) => row.reduce((max, b) => Math.max(max, b.lane + 1), 0));
+    const { rowBanners, shownIdsByDate, colLaneCounts } = computeMonthBanners(dateKeys);
 
     let html = `<div class="weekday-header">`;
     WEEKDAY_LABELS.forEach((label, i) => {
@@ -402,8 +404,8 @@
         eventsHtml += `<div class="more-label">他 ${dayEvents.length - maxShow} 件</div>`;
       }
 
-      const spacerHtml =
-        rowLaneCounts[row] > 0 ? `<div class="banner-spacer" style="--lanes:${rowLaneCounts[row]}"></div>` : "";
+      const cellLanes = colLaneCounts[i] || 0;
+      const spacerHtml = cellLanes > 0 ? `<div class="banner-spacer" style="--lanes:${cellLanes}"></div>` : "";
 
       html += `
         <div class="day-cell ${inMonth ? "" : "other-month"} ${isToday ? "today" : ""} ${isSelected ? "selected" : ""}" style="grid-row:${row + 1};grid-column:${col + 1}" data-date="${dateKey}">
