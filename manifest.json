@@ -1,0 +1,8 @@
+{
+  "name": "スケジュール管理",
+  "short_name": "スケジュール管理",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f4f6f9",
+  "theme_color": "#2563eb"
+}
