@@ -62,8 +62,7 @@ html, body {
 .nav-penguin {
   position: fixed;
   top: 50%;
-  left: -40px;
-  font-size: 32px;
+  left: -60px;
   line-height: 1;
   pointer-events: none;
   z-index: 1200;
@@ -72,23 +71,23 @@ html, body {
 .nav-penguin.sliding-next { animation: penguinSlideNext 0.6s ease-in-out; }
 .nav-penguin.sliding-prev { animation: penguinSlidePrev 0.6s ease-in-out; }
 
-/* Lying on its belly (rotated on its side) with a little wobble, like sliding
-   across ice nose-first, rather than standing up and walking sideways. */
+/* The artwork is drawn lying down facing left, so sliding rightward ("next")
+   mirrors it to face forward; a little wobble sells the ice-sliding motion. */
 @keyframes penguinSlideNext {
-  0%   { left: -40px;            opacity: 1; transform: translateY(calc(-50% - 5px)) rotate(-84deg); }
-  20%  {                                     transform: translateY(calc(-50% + 5px)) rotate(-96deg); }
-  40%  {                                     transform: translateY(calc(-50% - 5px)) rotate(-84deg); }
-  60%  {                                     transform: translateY(calc(-50% + 5px)) rotate(-96deg); }
-  80%  { opacity: 1;                         transform: translateY(calc(-50% - 5px)) rotate(-84deg); }
-  100% { left: calc(100% + 10px); opacity: 0; transform: translateY(-50%) rotate(-90deg); }
+  0%   { left: -60px;            opacity: 1; transform: translateY(calc(-50% - 5px)) scaleX(-1) rotate(4deg); }
+  20%  {                                     transform: translateY(calc(-50% + 5px)) scaleX(-1) rotate(-4deg); }
+  40%  {                                     transform: translateY(calc(-50% - 5px)) scaleX(-1) rotate(4deg); }
+  60%  {                                     transform: translateY(calc(-50% + 5px)) scaleX(-1) rotate(-4deg); }
+  80%  { opacity: 1;                         transform: translateY(calc(-50% - 5px)) scaleX(-1) rotate(4deg); }
+  100% { left: calc(100% + 20px); opacity: 0; transform: translateY(-50%) scaleX(-1) rotate(0deg); }
 }
 @keyframes penguinSlidePrev {
-  0%   { left: calc(100% + 10px); opacity: 1; transform: translateY(calc(-50% - 5px)) rotate(96deg) scaleY(-1); }
-  20%  {                                      transform: translateY(calc(-50% + 5px)) rotate(84deg) scaleY(-1); }
-  40%  {                                      transform: translateY(calc(-50% - 5px)) rotate(96deg) scaleY(-1); }
-  60%  {                                      transform: translateY(calc(-50% + 5px)) rotate(84deg) scaleY(-1); }
-  80%  { opacity: 1;                          transform: translateY(calc(-50% - 5px)) rotate(96deg) scaleY(-1); }
-  100% { left: -40px;             opacity: 0; transform: translateY(-50%) rotate(90deg) scaleY(-1); }
+  0%   { left: calc(100% + 20px); opacity: 1; transform: translateY(calc(-50% - 5px)) rotate(-4deg); }
+  20%  {                                      transform: translateY(calc(-50% + 5px)) rotate(4deg); }
+  40%  {                                      transform: translateY(calc(-50% - 5px)) rotate(-4deg); }
+  60%  {                                      transform: translateY(calc(-50% + 5px)) rotate(4deg); }
+  80%  { opacity: 1;                          transform: translateY(calc(-50% - 5px)) rotate(-4deg); }
+  100% { left: -60px;             opacity: 0; transform: translateY(-50%) rotate(0deg); }
 }
 .auth-gate-box p {
   color: var(--text-muted);
