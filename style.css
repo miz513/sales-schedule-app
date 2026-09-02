@@ -1052,6 +1052,7 @@ html, body {
 .memo-notify-btn svg { width: 16px; height: 16px; }
 .memo-notify-btn:hover { color: var(--primary); }
 .memo-notify-btn:disabled { opacity: 0.4; cursor: default; }
+.memo-notify-btn.sent { color: #16a34a; }
 .memo-card-content {
   font-size: 13px;
   color: var(--text);

@@ -1509,6 +1509,10 @@
     try {
       await window.ScheduleApp.notifyMemo(memo.title, memoNotifyBody(memo));
       alert("通知を送信しました");
+      if (triggerBtn) {
+        triggerBtn.classList.add("sent");
+        setTimeout(() => triggerBtn.classList.remove("sent"), 2500);
+      }
     } catch (e) {
       const code = (e && e.code) || "";
       const msg = (e && e.message) || String(e);
