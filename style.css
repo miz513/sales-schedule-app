@@ -679,11 +679,6 @@ html, body {
   max-width: 100%;
   margin-bottom: 2px;
 }
-.week-day-header .holiday-label {
-  white-space: normal;
-  margin-top: 2px;
-}
-
 /* Multi-day events span a continuous bar across the days they cover instead
    of a separate pill per day. They're placed as grid items sharing the same
    month-grid as the day cells (spanning grid-column bridges the gap between

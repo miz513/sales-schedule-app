@@ -652,8 +652,7 @@
       const dateKey = toDateKey(d);
       const isToday = isSameDay(d, today);
       const dow = d.getDay();
-      const holidayName = getHolidayName(dateKey);
-      const dnumCls = dow === 0 || holidayName ? "sun" : dow === 6 ? "sat" : "";
+      const dnumCls = dow === 0 ? "sun" : dow === 6 ? "sat" : "";
 
       const dayEvents = getEventsForDate(dateKey);
       let eventsHtml = "";
@@ -679,7 +678,6 @@
           <div class="week-day-header">
             <div class="dow">${WEEKDAY_LABELS[dow]}</div>
             <div class="dnum ${dnumCls}">${d.getDate()}</div>
-            ${holidayName ? `<div class="holiday-label">${escapeHtml(holidayName)}</div>` : ""}
           </div>
           <div class="week-day-body">${eventsHtml}</div>
           <button class="week-add-btn" data-date="${dateKey}">＋ 追加</button>
