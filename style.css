@@ -1409,7 +1409,7 @@ html, body {
   .event-pill { padding: 0 2px; border-radius: 3px; }
   .event-pill .pill-time { display: none; } /* too narrow to show both; the title matters more at a glance */
   .more-label { font-size: 8px; }
-  .holiday-label { font-size: 8px; padding: 0 3px; }
+  .holiday-label { font-size: 8.5px; padding: 0 3px; }
 
   .month-grid {
     --banner-h: 11px;
