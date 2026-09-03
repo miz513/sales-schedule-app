@@ -534,7 +534,7 @@
       dayEvents.slice(0, maxShow).forEach((ev) => {
         const { prefix, suffix, isTime } = monthPillDecoration(ev, dateKey);
         const prefixHtml = isTime && prefix ? `<span class="pill-time">${prefix}</span>` : prefix;
-        eventsHtml += `<div class="event-pill" style="background-color:${getCategoryColor(ev.category)}">${prefixHtml}${escapeHtml(ev.title)}${suffix}</div>`;
+        eventsHtml += `<div class="event-pill" style="color:${getCategoryColor(ev.category)}">${prefixHtml}${escapeHtml(ev.title)}${suffix}</div>`;
       });
       if (dayEvents.length > maxShow) {
         eventsHtml += `<div class="more-label">他 ${dayEvents.length - maxShow} 件</div>`;

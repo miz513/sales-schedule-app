@@ -642,11 +642,9 @@ html, body {
 }
 
 .event-pill {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 4px;
-  color: #fff;
+  padding: 1px 2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1391,8 +1389,8 @@ html, body {
   .weekday-header div { font-size: 10px; padding: 2px 0; }
   .day-cell { min-height: 52px; padding: 2px; border-radius: 5px; }
   .day-number { font-size: 9px; margin-bottom: 1px; }
-  .day-events { gap: 1px; }
-  .event-pill { font-size: 7px; padding: 0 2px; line-height: 1.4; }
+  .day-events { gap: 2px; }
+  .event-pill { font-size: 9px; padding: 0 1px; line-height: 1.3; }
   .event-pill .pill-time { display: none; } /* too narrow to show both; the title matters more at a glance */
   .more-label { font-size: 6px; }
   .holiday-label { font-size: 6px; }
