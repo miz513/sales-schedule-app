@@ -559,7 +559,7 @@
         const prefix = isRowStart ? "" : "◀ ";
         const suffix = isRowEnd ? "" : " ▶";
         html += `
-        <div class="month-banner" style="grid-row:${r + 1};grid-column:${startCol + 1} / ${endCol + 2};--lane:${lane};background-color:${getCategoryColor(ev.category)}" data-date="${dateKeys[r * 7 + startCol]}">${prefix}${escapeHtml(ev.title)}${suffix}</div>`;
+        <div class="month-banner" style="grid-row:${r + 1};grid-column:${startCol + 1} / ${endCol + 2};--lane:${lane};--pill-color:${getCategoryColor(ev.category)}" data-date="${dateKeys[r * 7 + startCol]}">${prefix}${escapeHtml(ev.title)}${suffix}</div>`;
       });
     });
 

@@ -660,12 +660,18 @@ html, body {
 }
 
 .holiday-label {
+  display: inline-block;
   font-size: 10px;
+  font-weight: 700;
   color: #dc2626;
-  line-height: 1.2;
+  background-color: color-mix(in srgb, #dc2626 16%, white);
+  border-radius: 4px;
+  padding: 0 4px;
+  line-height: 1.4;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  max-width: 100%;
   margin-bottom: 2px;
 }
 .week-day-header .holiday-label {
@@ -691,9 +697,10 @@ html, body {
   margin: calc(var(--banner-base-offset) + var(--lane, 0) * (var(--banner-h) + var(--banner-gap))) 6px 0;
   padding: 0 6px;
   border-radius: 4px;
-  color: #fff;
+  color: var(--pill-color);
+  background-color: color-mix(in srgb, var(--pill-color) 16%, white);
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
