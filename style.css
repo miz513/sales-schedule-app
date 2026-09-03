@@ -696,6 +696,14 @@ html, body {
   --banner-base-offset: 22px;
   --event-font-size: 12px;
 }
+/* The holiday label used a ratio line-height while the banner used a fixed
+   pixel height, so they only looked aligned by coincidence at some sizes —
+   pin it to the exact same box the banner and pills use. */
+.day-cell .holiday-label {
+  height: var(--banner-h);
+  line-height: var(--banner-h);
+  font-size: var(--event-font-size);
+}
 .month-banner {
   align-self: start;
   height: var(--banner-h);
@@ -1409,7 +1417,7 @@ html, body {
   .event-pill { padding: 0 2px; border-radius: 3px; }
   .event-pill .pill-time { display: none; } /* too narrow to show both; the title matters more at a glance */
   .more-label { font-size: 8px; }
-  .holiday-label { font-size: 8.5px; padding: 0 3px; }
+  .holiday-label { padding: 0 3px; }
 
   .month-grid {
     --banner-h: 11px;
