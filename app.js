@@ -574,6 +574,8 @@
       banner.addEventListener("click", () => openDayModal(new Date(banner.dataset.date + "T00:00:00")));
     });
 
+    adjustBannerBaseOffset();
+
     // Capped: at extremely constrained cell heights, the measured pill
     // height can shift by sub-pixel fractions depending on how many pills
     // are rendered, which without a limit here can oscillate between two
@@ -582,6 +584,28 @@
     if (monthAdjustAttempts < 3) {
       monthAdjustAttempts++;
       adjustMonthMaxShow();
+    }
+  }
+
+  // Multi-day banners are positioned with a hardcoded top margin meant to
+  // approximate "the space the day number takes up" so they line up with
+  // where a pill would start. A fixed guess only holds for whatever font
+  // happened to render it during testing — different platforms fall back to
+  // different CJK fonts (this app's stack has no font that actually exists
+  // on Android, for instance) with different natural line heights, so the
+  // guess can be off by a device-specific amount. Measuring the real
+  // rendered day-number on THIS device and feeding that back in as an
+  // inline custom property (which wins over the CSS guess) fixes it for any
+  // platform instead of just the one used to calibrate the constant.
+  function adjustBannerBaseOffset() {
+    const dayNumber = mainArea.querySelector(".day-number");
+    const cell = dayNumber ? dayNumber.closest(".day-cell") : null;
+    const grid = mainArea.querySelector(".month-grid");
+    if (!dayNumber || !cell || !grid) return;
+    const marginBottom = parseFloat(getComputedStyle(dayNumber).marginBottom) || 0;
+    const offset = dayNumber.getBoundingClientRect().bottom - cell.getBoundingClientRect().top + marginBottom;
+    if (Number.isFinite(offset) && offset > 0) {
+      grid.style.setProperty("--banner-base-offset", `${offset}px`);
     }
   }
 
