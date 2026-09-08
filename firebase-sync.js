@@ -12,16 +12,15 @@ import {
   persistentSingleTabManager,
   doc,
   getDoc,
+  getDocFromCache,
   setDoc,
   updateDoc,
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
-import {
-  getMessaging,
-  isSupported as isMessagingSupported,
-  getToken,
-  onMessage,
-} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging.js";
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-functions.js";
+// Messaging and Functions are only needed once the user actually touches a
+// notification feature, so they're dynamically imported on first use below
+// instead of as static imports — those block this whole module's evaluation
+// (and therefore auth/Firestore setup) on fetching both SDKs up front, even
+// for the common case of a launch that never touches notifications.
 
 // Generated in Firebase Console → Project settings → Cloud Messaging → Web
 // configuration → "Generate key pair". Public by design (safe to ship).
@@ -43,7 +42,6 @@ const auth = getAuth(app);
 const db = initializeFirestore(app, {
   localCache: persistentLocalCache({ tabManager: persistentSingleTabManager() }),
 });
-const functions = getFunctions(app, "asia-northeast1");
 const provider = new GoogleAuthProvider();
 
 const btnSignIn = document.getElementById("btnSignIn");
@@ -105,6 +103,24 @@ function userDocRef(uid) {
 
 async function pullOrPushInitial(user) {
   const ref = userDocRef(user.uid);
+
+  // Cache-first paint: a plain getDoc() waits on a server round-trip before
+  // resolving even when a synced copy already sits in the local IndexedDB
+  // cache, so a returning user stares at an empty calendar every single
+  // launch. Painting the cached copy first (near-instant) and letting the
+  // server fetch below reconcile in the background fixes that; on a
+  // brand-new device there's nothing cached yet and this just no-ops.
+  try {
+    const cached = await getDocFromCache(ref);
+    if (cached.exists()) {
+      applyingRemoteData = true;
+      window.ScheduleApp.setData(cached.data());
+      applyingRemoteData = false;
+    }
+  } catch (e) {
+    // No cached doc yet — fine, the server fetch below populates it.
+  }
+
   const snap = await getDoc(ref);
   if (snap.exists()) {
     applyingRemoteData = true;
@@ -178,6 +194,14 @@ function updateNotifyStatus(text) {
   if (notifyStatus) notifyStatus.textContent = text;
 }
 
+let messagingModulePromise = null;
+function loadMessagingModule() {
+  if (!messagingModulePromise) {
+    messagingModulePromise = import("https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging.js");
+  }
+  return messagingModulePromise;
+}
+
 let foregroundHandlerRegistered = false;
 
 // Chrome on Android throws if a page script calls `new Notification()`
@@ -185,7 +209,7 @@ let foregroundHandlerRegistered = false;
 // the worker's own showNotification instead, same as the background handler
 // in sw.js. Registered once (not per registerNotificationToken call) so a
 // user re-enabling notifications never ends up with duplicate popups.
-function ensureForegroundHandler(messaging, registration) {
+function ensureForegroundHandler(onMessage, messaging, registration) {
   if (foregroundHandlerRegistered) return;
   foregroundHandlerRegistered = true;
   onMessage(messaging, (payload) => {
@@ -198,7 +222,8 @@ function ensureForegroundHandler(messaging, registration) {
 
 async function registerNotificationToken() {
   if (!currentUser) return;
-  if (!(await isMessagingSupported())) {
+  const { getMessaging, isSupported, getToken, onMessage } = await loadMessagingModule();
+  if (!(await isSupported())) {
     updateNotifyStatus("この端末・ブラウザは通知に対応していません");
     return;
   }
@@ -216,7 +241,7 @@ async function registerNotificationToken() {
       // self-heals any tokens that already piled up before this fix.
       await updateDoc(userDocRef(currentUser.uid), { fcmTokens: [token] });
       updateNotifyStatus("通知: 有効");
-      ensureForegroundHandler(messaging, registration);
+      ensureForegroundHandler(onMessage, messaging, registration);
     }
   } catch (e) {
     console.error(e);
@@ -255,6 +280,8 @@ onAuthStateChanged(auth, (user) => {
 // like one in the meantime.
 window.ScheduleApp.notifyMemo = async (title, body) => {
   if (!currentUser) throw new Error("先にログインしてください");
+  const { getFunctions, httpsCallable } = await import("https://www.gstatic.com/firebasejs/10.14.1/firebase-functions.js");
+  const functions = getFunctions(app, "asia-northeast1");
   const sendMemoNotification = httpsCallable(functions, "sendMemoNotification");
   await sendMemoNotification({ title, body });
 };
