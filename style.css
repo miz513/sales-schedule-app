@@ -1089,10 +1089,16 @@ html, body {
   font-size: 13px;
   color: var(--text);
   white-space: pre-wrap;
+  word-break: break-all;
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 5;
   -webkit-box-orient: vertical;
+}
+.memo-card-content a,
+.memo-card-item a {
+  color: var(--primary);
+  text-decoration: underline;
 }
 .memo-card-items {
   display: flex;
@@ -1105,6 +1111,7 @@ html, body {
   gap: 7px;
   font-size: 13px;
   color: var(--text);
+  word-break: break-all;
 }
 .memo-card-item.checked {
   color: var(--text-muted);

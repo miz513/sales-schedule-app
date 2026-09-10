@@ -1615,7 +1615,7 @@
       .map((memo) => {
         const bodyHtml =
           memoType(memo) === "text"
-            ? `<div class="memo-card-content">${escapeHtml(memo.content || "")}</div>`
+            ? `<div class="memo-card-content">${linkifyHtml(memo.content || "")}</div>`
             : renderMemoChecklistBody(memo);
         return `
         <div class="memo-card" style="border-left-color:${memo.color || FALLBACK_COLOR}" data-id="${memo.id}">
@@ -1639,7 +1639,7 @@
         (it) => `
       <div class="memo-card-item ${it.checked ? "checked" : ""}">
         <span class="memo-check" data-memo-id="${memo.id}" data-item-id="${it.id}">${it.checked ? "☑" : "☐"}</span>
-        <span>${escapeHtml(it.text)}</span>
+        <span>${linkifyHtml(it.text)}</span>
       </div>`
       )
       .join("");
@@ -1689,6 +1689,7 @@
   }
 
   memoList.addEventListener("click", (e) => {
+    if (e.target.closest("a")) return; // let the link open on its own, without also entering edit mode
     const notifyBtn = e.target.closest(".memo-notify-btn");
     if (notifyBtn) {
       e.stopPropagation();
@@ -1845,6 +1846,24 @@
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#39;");
+  }
+
+  // Escapes first (so pasted HTML/script text is inert), then wraps URLs in
+  // the escaped result in a clickable link — safe because the escaping has
+  // already happened, so nothing in the matched URL text can inject markup.
+  // Stops at CJK characters as well as whitespace: Japanese sentences
+  // routinely butt a URL right up against the next word with no space
+  // ("資料はこちらhttps://...です"), so a whitespace-only boundary would
+  // swallow the trailing Japanese text into the link.
+  function linkifyHtml(str) {
+    return escapeHtml(str).replace(/https?:\/\/[^\s<>"'　-ヿ㐀-鿿＀-￯]+/g, (url) => {
+      let trail = "";
+      while (url.length > 0 && /[.,;:!?)\]}]$/.test(url)) {
+        trail = url.slice(-1) + trail;
+        url = url.slice(0, -1);
+      }
+      return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>${trail}`;
+    });
   }
 
   function truncate(str, n) {
