@@ -178,9 +178,11 @@
     return nd;
   }
 
-  function startOfWeek(d) {
+  // weekStartsOn: 0 = Sunday (month view's grid, unchanged), 1 = Monday
+  // (week view, per user request — the two views intentionally disagree).
+  function startOfWeek(d, weekStartsOn = 0) {
     const nd = startOfDay(d);
-    const dow = nd.getDay(); // 0 = Sunday
+    const dow = (nd.getDay() - weekStartsOn + 7) % 7;
     return addDays(nd, -dow);
   }
 
@@ -380,7 +382,7 @@
     if (state.view === "month") {
       periodLabel.textContent = `${state.cursor.getFullYear()}年 ${state.cursor.getMonth() + 1}月`;
     } else {
-      const ws = startOfWeek(state.cursor);
+      const ws = startOfWeek(state.cursor, 1);
       const we = addDays(ws, 6);
       if (ws.getMonth() === we.getMonth()) {
         periodLabel.textContent = `${ws.getFullYear()}年 ${ws.getMonth() + 1}月 ${ws.getDate()}〜${we.getDate()}日`;
@@ -643,7 +645,7 @@
   }
 
   function renderWeekView() {
-    const ws = startOfWeek(state.cursor);
+    const ws = startOfWeek(state.cursor, 1);
     const today = startOfDay(new Date());
 
     let html = `<div class="week-grid">`;
