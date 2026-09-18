@@ -5,7 +5,7 @@
   const CATEGORY_STORAGE_KEY = "sales-schedule-app.categories.v1";
   const MEMO_STORAGE_KEY = "sales-schedule-app.memos.v1";
   const SETTINGS_STORAGE_KEY = "sales-schedule-app.settings.v1";
-  const DEFAULT_SETTINGS = { weekStartsOn: 1 }; // Monday, matching what shipped before this became configurable
+  const DEFAULT_SETTINGS = { weekStartsOn: 0 }; // Sunday
 
   const DEFAULT_CATEGORIES = [
     { name: "商談", color: "#2563eb" },
@@ -354,7 +354,6 @@
   const memoEditModalTitle = document.getElementById("memoEditModalTitle");
   const memoIdInput = document.getElementById("memoId");
   const memoTitleInput = document.getElementById("memoTitleInput");
-  const memoColorInput = document.getElementById("memoColorInput");
   const memoTypeRadios = document.querySelectorAll('input[name="memoType"]');
   const memoTextSection = document.getElementById("memoTextSection");
   const memoContentInput = document.getElementById("memoContentInput");
@@ -1652,6 +1651,7 @@
 
   // ---------- Memo ----------
 
+  const DEFAULT_MEMO_COLOR = "#16a34a";
   let editingMemoItems = [];
 
   // Memos saved before the type toggle existed only ever stored items
@@ -1803,7 +1803,6 @@
     memoIdInput.value = memo ? memo.id : "";
     memoEditModalTitle.textContent = memo ? "メモを編集" : "メモを追加";
     memoTitleInput.value = memo ? memo.title : "";
-    memoColorInput.value = memo ? memo.color || "#16a34a" : "#16a34a";
     memoContentInput.value = memo ? memo.content || "" : "";
     editingMemoItems = memo ? (memo.items || []).map((it) => ({ ...it })) : [];
     const type = memo ? memoType(memo) : "text";
@@ -1866,12 +1865,11 @@
     if (id) {
       const memo = memos.find((m) => m.id === id);
       memo.title = title;
-      memo.color = memoColorInput.value;
       memo.type = type;
       memo.content = content;
       memo.items = items;
     } else {
-      memos.push({ id: uid("memo"), title, color: memoColorInput.value, type, content, items, createdAt: Date.now() });
+      memos.push({ id: uid("memo"), title, color: DEFAULT_MEMO_COLOR, type, content, items, createdAt: Date.now() });
     }
     saveMemos();
     closeModal(memoEditModal);

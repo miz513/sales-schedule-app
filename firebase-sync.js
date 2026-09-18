@@ -47,7 +47,7 @@ const provider = new GoogleAuthProvider();
 const btnSignIn = document.getElementById("btnSignIn");
 const btnSignOut = document.getElementById("btnSignOut");
 const syncStatus = document.getElementById("syncStatus");
-const btnEnableNotify = document.getElementById("btnEnableNotify");
+const notifyToggle = document.getElementById("notifyToggle");
 const notifyStatus = document.getElementById("notifyStatus");
 
 const authGate = document.getElementById("authGate");
@@ -190,6 +190,16 @@ btnSignOut.addEventListener("click", async () => {
 // registered here. Foreground messages don't produce a system notification
 // automatically, so onMessage below shows one manually in that case.
 
+// Browsers never let JS revoke a granted Notification permission — only the
+// user can do that via browser/OS settings. So "off" in this app's toggle
+// just means "don't register/keep a token, and clear any that's stored,"
+// tracked here so a granted-but-toggled-off state survives a reload instead
+// of silently re-enabling itself.
+const NOTIFY_DISABLED_KEY = "sales-schedule-app.notify-disabled";
+function isNotifyDisabledLocally() {
+  return localStorage.getItem(NOTIFY_DISABLED_KEY) === "1";
+}
+
 function updateNotifyStatus(text) {
   if (notifyStatus) notifyStatus.textContent = text;
 }
@@ -220,14 +230,16 @@ function ensureForegroundHandler(onMessage, messaging, registration) {
   });
 }
 
+// Returns true only once a token is actually registered, so callers (the
+// toggle handler) know whether to keep the switch on or snap it back off.
 async function registerNotificationToken() {
-  if (!currentUser) return;
+  if (!currentUser) return false;
   const { getMessaging, isSupported, getToken, onMessage } = await loadMessagingModule();
   if (!(await isSupported())) {
     updateNotifyStatus("この端末・ブラウザは通知に対応していません");
-    return;
+    return false;
   }
-  if (Notification.permission !== "granted") return;
+  if (Notification.permission !== "granted") return false;
   try {
     const registration = await navigator.serviceWorker.ready;
     const messaging = getMessaging(app);
@@ -242,35 +254,63 @@ async function registerNotificationToken() {
       await updateDoc(userDocRef(currentUser.uid), { fcmTokens: [token] });
       updateNotifyStatus("通知: 有効");
       ensureForegroundHandler(onMessage, messaging, registration);
+      return true;
     }
+    return false;
   } catch (e) {
     console.error(e);
     updateNotifyStatus(`通知の設定に失敗しました: ${e.code || e.message || e}`);
+    return false;
   }
 }
 
-btnEnableNotify.addEventListener("click", async () => {
-  if (!currentUser) {
-    updateNotifyStatus("先にログインしてください");
-    return;
+async function disableNotifications() {
+  localStorage.setItem(NOTIFY_DISABLED_KEY, "1");
+  updateNotifyStatus("通知: 無効");
+  if (!currentUser) return;
+  try {
+    await updateDoc(userDocRef(currentUser.uid), { fcmTokens: [] });
+  } catch (e) {
+    console.error(e);
   }
-  if (!("Notification" in window)) {
-    updateNotifyStatus("この端末・ブラウザは通知に対応していません");
-    return;
-  }
-  const permission = await Notification.requestPermission();
-  if (permission !== "granted") {
-    updateNotifyStatus("通知が許可されませんでした");
-    return;
-  }
-  await registerNotificationToken();
-});
+}
+
+if (notifyToggle) {
+  notifyToggle.addEventListener("change", async () => {
+    if (notifyToggle.checked) {
+      if (!currentUser) {
+        updateNotifyStatus("先にログインしてください");
+        notifyToggle.checked = false;
+        return;
+      }
+      if (!("Notification" in window)) {
+        updateNotifyStatus("この端末・ブラウザは通知に対応していません");
+        notifyToggle.checked = false;
+        return;
+      }
+      localStorage.removeItem(NOTIFY_DISABLED_KEY);
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        updateNotifyStatus("通知が許可されませんでした");
+        notifyToggle.checked = false;
+        return;
+      }
+      const ok = await registerNotificationToken();
+      if (!ok) notifyToggle.checked = false;
+    } else {
+      await disableNotifications();
+    }
+  });
+}
 
 onAuthStateChanged(auth, (user) => {
-  if (user && "Notification" in window && Notification.permission === "granted") {
+  if (!user) return;
+  if ("Notification" in window && Notification.permission === "granted" && !isNotifyDisabledLocally()) {
+    if (notifyToggle) notifyToggle.checked = true;
     registerNotificationToken();
-  } else if (user) {
-    updateNotifyStatus("通知: 無効（メニューから有効にできます）");
+  } else {
+    if (notifyToggle) notifyToggle.checked = false;
+    updateNotifyStatus("通知: 無効");
   }
 });
 

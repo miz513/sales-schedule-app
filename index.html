@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#2563eb">
 <link rel="manifest" href="manifest.json">
 <title>スケジュール管理</title>
-<link rel="stylesheet" href="style.css?v=64">
+<link rel="stylesheet" href="style.css?v=65">
 </head>
 <body>
 
@@ -257,8 +257,13 @@
       </div>
     </div>
     <div class="form-row">
-      <label>通知</label>
-      <button type="button" id="btnEnableNotify" class="secondary-btn">予定の通知を有効にする</button>
+      <div class="settings-toggle-row">
+        <span>予定の通知</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="notifyToggle">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
       <div id="notifyStatus" class="sync-status"></div>
     </div>
   </div>
@@ -308,10 +313,6 @@
       <div class="form-row">
         <label>タイトル</label>
         <input type="text" id="memoTitleInput" placeholder="例：買い物リスト">
-      </div>
-      <div class="form-row">
-        <label>色</label>
-        <input type="color" id="memoColorInput" value="#16a34a">
       </div>
       <div class="form-row">
         <label>種類</label>
@@ -377,8 +378,8 @@
   </div>
 </div>
 
-<script src="app.js?v=64"></script>
-<script type="module" src="firebase-sync.js?v=11"></script>
+<script src="app.js?v=65"></script>
+<script type="module" src="firebase-sync.js?v=12"></script>
 <script>
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js?v=3");
