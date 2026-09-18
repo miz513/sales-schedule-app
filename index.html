@@ -120,8 +120,7 @@
         <button id="btnSignIn">Googleでログイン（同期）</button>
         <button id="btnSignOut" class="hidden">ログアウト</button>
         <div id="syncStatus" class="sync-status"></div>
-        <button id="btnEnableNotify">予定の通知を有効にする</button>
-        <div id="notifyStatus" class="sync-status"></div>
+        <button id="btnSettings">設定</button>
         <button id="btnMonthlySummary">月次集計</button>
       </div>
     </div>
@@ -234,6 +233,34 @@
         <button type="submit" class="primary-btn">保存</button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- 設定モーダル -->
+<div id="settingsModal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>設定</h2>
+      <button class="close-btn" data-close="settingsModal">×</button>
+    </div>
+    <div class="form-row">
+      <label>週の開始日</label>
+      <div class="memo-type-toggle">
+        <label class="memo-type-option">
+          <input type="radio" name="weekStartsOn" value="0">
+          日曜始まり
+        </label>
+        <label class="memo-type-option">
+          <input type="radio" name="weekStartsOn" value="1">
+          月曜始まり
+        </label>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>通知</label>
+      <button type="button" id="btnEnableNotify" class="secondary-btn">予定の通知を有効にする</button>
+      <div id="notifyStatus" class="sync-status"></div>
+    </div>
   </div>
 </div>
 
@@ -350,7 +377,7 @@
   </div>
 </div>
 
-<script src="app.js?v=63"></script>
+<script src="app.js?v=64"></script>
 <script type="module" src="firebase-sync.js?v=11"></script>
 <script>
   if ("serviceWorker" in navigator) {

@@ -4,6 +4,8 @@
   const STORAGE_KEY = "sales-schedule-app.events.v1";
   const CATEGORY_STORAGE_KEY = "sales-schedule-app.categories.v1";
   const MEMO_STORAGE_KEY = "sales-schedule-app.memos.v1";
+  const SETTINGS_STORAGE_KEY = "sales-schedule-app.settings.v1";
+  const DEFAULT_SETTINGS = { weekStartsOn: 1 }; // Monday, matching what shipped before this became configurable
 
   const DEFAULT_CATEGORIES = [
     { name: "商談", color: "#2563eb" },
@@ -25,6 +27,9 @@
 
   /** @type {Array<{id: string, title: string, color: string, items: Array<{id: string, text: string, checked: boolean}>, createdAt: number}>} */
   let memos = loadMemos();
+
+  /** @type {{weekStartsOn: number}} */
+  let settings = loadSettings();
 
   let state = {
     view: "month", // 'month' | 'week'
@@ -98,6 +103,23 @@
     notifyDataChanged();
   }
 
+  function loadSettings() {
+    try {
+      const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
+      if (!raw) return { ...DEFAULT_SETTINGS };
+      const parsed = JSON.parse(raw);
+      return { ...DEFAULT_SETTINGS, ...parsed };
+    } catch (e) {
+      console.error("設定の読み込みに失敗しました", e);
+      return { ...DEFAULT_SETTINGS };
+    }
+  }
+
+  function saveSettings() {
+    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+    notifyDataChanged();
+  }
+
   // ---------- Cloud sync hook ----------
   // A tiny public surface so firebase-sync.js can read/replace all local data
   // and get notified when it changes, without needing to know this module's internals.
@@ -114,19 +136,22 @@
         ? data.categories
         : DEFAULT_CATEGORIES.map((c) => ({ ...c }));
     memos = Array.isArray(data.memos) ? data.memos : [];
+    settings = data.settings && typeof data.settings === "object" ? { ...DEFAULT_SETTINGS, ...data.settings } : { ...DEFAULT_SETTINGS };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
     localStorage.setItem(CATEGORY_STORAGE_KEY, JSON.stringify(categories));
     localStorage.setItem(MEMO_STORAGE_KEY, JSON.stringify(memos));
+    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
     state.activeCategories = new Set();
     renderCategoryChips();
     renderCategorySelectOptions();
     render();
     refreshOpenDayModalIfNeeded();
     renderMemoList();
+    syncSettingsUI();
   }
 
   window.ScheduleApp = {
-    getData: () => ({ events, categories, memos }),
+    getData: () => ({ events, categories, memos, settings }),
     setData,
     onChange: (cb) => changeListeners.push(cb),
   };
@@ -307,6 +332,10 @@
   const summaryModalTitle = document.getElementById("summaryModalTitle");
   const summaryModalBody = document.getElementById("summaryModalBody");
 
+  const btnSettings = document.getElementById("btnSettings");
+  const settingsModal = document.getElementById("settingsModal");
+  const weekStartsOnRadios = document.querySelectorAll('input[name="weekStartsOn"]');
+
   const categoryModal = document.getElementById("categoryModal");
   const categoryModalBox = categoryModal.querySelector(".modal");
   const categoryList = document.getElementById("categoryList");
@@ -382,7 +411,7 @@
     if (state.view === "month") {
       periodLabel.textContent = `${state.cursor.getFullYear()}年 ${state.cursor.getMonth() + 1}月`;
     } else {
-      const ws = startOfWeek(state.cursor, 1);
+      const ws = startOfWeek(state.cursor, settings.weekStartsOn);
       const we = addDays(ws, 6);
       if (ws.getMonth() === we.getMonth()) {
         periodLabel.textContent = `${ws.getFullYear()}年 ${ws.getMonth() + 1}月 ${ws.getDate()}〜${we.getDate()}日`;
@@ -502,7 +531,7 @@
   function renderMonthView(isCorrectivePass) {
     if (!isCorrectivePass) monthAdjustAttempts = 0;
     const monthStart = startOfMonth(state.cursor);
-    const gridStart = startOfWeek(monthStart, 1);
+    const gridStart = startOfWeek(monthStart, settings.weekStartsOn);
     const today = startOfDay(new Date());
 
     const dateKeys = [];
@@ -511,7 +540,7 @@
 
     let html = `<div class="weekday-header">`;
     for (let i = 0; i < 7; i++) {
-      const dow = (i + 1) % 7; // column 0 = Monday(1) ... column 6 = Sunday(0)
+      const dow = (i + settings.weekStartsOn) % 7;
       const cls = dow === 0 ? "sun" : dow === 6 ? "sat" : "";
       html += `<div class="${cls}">${WEEKDAY_LABELS[dow]}</div>`;
     }
@@ -646,7 +675,7 @@
   }
 
   function renderWeekView() {
-    const ws = startOfWeek(state.cursor, 1);
+    const ws = startOfWeek(state.cursor, settings.weekStartsOn);
     const today = startOfDay(new Date());
 
     let html = `<div class="week-grid">`;
@@ -982,7 +1011,7 @@
     btn.addEventListener("click", () => closeModal(document.getElementById(btn.dataset.close)));
   });
 
-  [dayModal, eventModal, categoryModal, summaryModal, yearMonthModal, memoModal, memoEditModal].forEach((overlay) => {
+  [dayModal, eventModal, categoryModal, summaryModal, yearMonthModal, memoModal, memoEditModal, settingsModal].forEach((overlay) => {
     overlay.addEventListener("click", (e) => {
       if (e.target === overlay) closeModal(overlay);
     });
@@ -990,7 +1019,7 @@
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
-      [dayModal, eventModal, categoryModal, summaryModal, yearMonthModal, memoModal, memoEditModal].forEach((overlay) => {
+      [dayModal, eventModal, categoryModal, summaryModal, yearMonthModal, memoModal, memoEditModal, settingsModal].forEach((overlay) => {
         if (!overlay.classList.contains("hidden")) closeModal(overlay);
       });
     }
@@ -1226,6 +1255,29 @@
     menuDropdown.classList.add("hidden");
     renderMonthlySummary();
     summaryModal.classList.remove("hidden");
+  });
+
+  // ---------- Settings ----------
+
+  function syncSettingsUI() {
+    weekStartsOnRadios.forEach((radio) => {
+      radio.checked = Number(radio.value) === settings.weekStartsOn;
+    });
+  }
+
+  btnSettings.addEventListener("click", () => {
+    menuDropdown.classList.add("hidden");
+    syncSettingsUI();
+    settingsModal.classList.remove("hidden");
+    settingsModal.querySelector(".modal").scrollTop = 0;
+  });
+
+  weekStartsOnRadios.forEach((radio) => {
+    radio.addEventListener("change", () => {
+      settings.weekStartsOn = Number(radio.value);
+      saveSettings();
+      render();
+    });
   });
 
   // ---------- Category management ----------
@@ -1928,6 +1980,7 @@
   renderCategoryChips();
   renderCategorySelectOptions();
   renderMemoList();
+  syncSettingsUI();
   render();
   setupMascotAnimation();
   openMemoFromDeepLink();
