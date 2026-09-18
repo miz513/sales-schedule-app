@@ -502,7 +502,7 @@
   function renderMonthView(isCorrectivePass) {
     if (!isCorrectivePass) monthAdjustAttempts = 0;
     const monthStart = startOfMonth(state.cursor);
-    const gridStart = startOfWeek(monthStart);
+    const gridStart = startOfWeek(monthStart, 1);
     const today = startOfDay(new Date());
 
     const dateKeys = [];
@@ -510,10 +510,11 @@
     const { rowBanners, shownIdsByDate, colLaneCounts } = computeMonthBanners(dateKeys);
 
     let html = `<div class="weekday-header">`;
-    WEEKDAY_LABELS.forEach((label, i) => {
-      const cls = i === 0 ? "sun" : i === 6 ? "sat" : "";
-      html += `<div class="${cls}">${label}</div>`;
-    });
+    for (let i = 0; i < 7; i++) {
+      const dow = (i + 1) % 7; // column 0 = Monday(1) ... column 6 = Sunday(0)
+      const cls = dow === 0 ? "sun" : dow === 6 ? "sat" : "";
+      html += `<div class="${cls}">${WEEKDAY_LABELS[dow]}</div>`;
+    }
     html += `</div><div class="month-grid">`;
 
     for (let i = 0; i < 42; i++) {
