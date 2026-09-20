@@ -1025,6 +1025,10 @@
   });
 
   function closeModal(overlay) {
+    if (overlay === memoEditModal && !memoEditModal.classList.contains("hidden")) {
+      flushMemoSave();
+      renderMemoList();
+    }
     overlay.classList.add("hidden");
   }
 
@@ -1653,6 +1657,54 @@
 
   const DEFAULT_MEMO_COLOR = "#16a34a";
   let editingMemoItems = [];
+  let memoAutosaveTimer = null;
+
+  function flushMemoSave() {
+    if (memoAutosaveTimer) {
+      clearTimeout(memoAutosaveTimer);
+      memoAutosaveTimer = null;
+    }
+    const title = memoTitleInput.value.trim();
+    if (!title) return false;
+    const type = document.querySelector('input[name="memoType"]:checked').value;
+    const content = memoContentInput.value.trim();
+    const items = editingMemoItems
+      .map((it) => ({ ...it, text: it.text.trim() }))
+      .filter((it) => it.text !== "");
+    const id = memoIdInput.value;
+    if (id) {
+      const memo = memos.find((m) => m.id === id);
+      if (!memo) return false;
+      memo.title = title;
+      memo.type = type;
+      memo.content = content;
+      memo.items = items;
+    } else {
+      const newMemo = { id: uid("memo"), title, color: DEFAULT_MEMO_COLOR, type, content, items, createdAt: Date.now() };
+      memos.push(newMemo);
+      memoIdInput.value = newMemo.id;
+      btnDeleteMemo.classList.remove("hidden");
+    }
+    saveMemos();
+    return true;
+  }
+
+  function scheduleMemoAutosave() {
+    if (memoAutosaveTimer) clearTimeout(memoAutosaveTimer);
+    memoAutosaveTimer = setTimeout(() => {
+      memoAutosaveTimer = null;
+      flushMemoSave();
+    }, 500);
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden" && !memoEditModal.classList.contains("hidden")) {
+      flushMemoSave();
+    }
+  });
+  window.addEventListener("pagehide", () => {
+    if (!memoEditModal.classList.contains("hidden")) flushMemoSave();
+  });
 
   // Memos saved before the type toggle existed only ever stored items
   // (checklist-style), so a missing type falls back to "checklist" to keep
@@ -1796,8 +1848,12 @@
         editingMemoItems.push({ id: uid("mi"), text: "", checked: false });
         renderMemoItemRows();
       }
+      flushMemoSave();
     })
   );
+
+  memoTitleInput.addEventListener("input", scheduleMemoAutosave);
+  memoContentInput.addEventListener("input", scheduleMemoAutosave);
 
   function openMemoEdit(memo) {
     memoIdInput.value = memo ? memo.id : "";
@@ -1832,13 +1888,16 @@
       const item = editingMemoItems.find((it) => it.id === id);
       row.querySelector('input[type="checkbox"]').addEventListener("change", (e) => {
         item.checked = e.target.checked;
+        flushMemoSave();
       });
       row.querySelector('input[type="text"]').addEventListener("input", (e) => {
         item.text = e.target.value;
+        scheduleMemoAutosave();
       });
       row.querySelector(".memo-item-delete").addEventListener("click", () => {
         editingMemoItems = editingMemoItems.filter((it) => it.id !== id);
         renderMemoItemRows();
+        flushMemoSave();
       });
     });
   }
@@ -1851,29 +1910,7 @@
   });
 
   btnSaveMemo.addEventListener("click", () => {
-    const title = memoTitleInput.value.trim();
-    if (!title) {
-      memoTitleInput.focus();
-      return;
-    }
-    const type = document.querySelector('input[name="memoType"]:checked').value;
-    const content = memoContentInput.value.trim();
-    const items = editingMemoItems
-      .map((it) => ({ ...it, text: it.text.trim() }))
-      .filter((it) => it.text !== "");
-    const id = memoIdInput.value;
-    if (id) {
-      const memo = memos.find((m) => m.id === id);
-      memo.title = title;
-      memo.type = type;
-      memo.content = content;
-      memo.items = items;
-    } else {
-      memos.push({ id: uid("memo"), title, color: DEFAULT_MEMO_COLOR, type, content, items, createdAt: Date.now() });
-    }
-    saveMemos();
     closeModal(memoEditModal);
-    renderMemoList();
     memoModal.classList.remove("hidden");
   });
 
