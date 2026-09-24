@@ -45,9 +45,6 @@ self.addEventListener("notificationclick", (event) => {
   );
 });
 
-// Forces every request through the network instead of the browser's own HTTP
-// cache. iOS "Add to Home Screen" apps are known to hold onto a stale copy of
-// the page for a long time without this; this keeps updates showing up promptly.
 self.addEventListener("install", () => {
   self.skipWaiting();
 });
@@ -56,6 +53,16 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(self.clients.claim());
 });
 
+// Only the HTML shell itself needs a forced network fetch: iOS "Add to Home
+// Screen" apps are known to hold onto a stale copy of the page for a long
+// time otherwise, and index.html has no cache-busting query string to force
+// a refetch on its own. Everything else (app.js/style.css, which DO carry a
+// ?v= that changes on every deploy, and the Firebase SDK chunks pinned to an
+// exact version) is safe — and much faster — to let the browser cache
+// normally instead of re-downloading hundreds of KB from scratch on every
+// single launch.
 self.addEventListener("fetch", (event) => {
-  event.respondWith(fetch(event.request, { cache: "no-store" }));
+  if (event.request.mode === "navigate") {
+    event.respondWith(fetch(event.request, { cache: "no-store" }));
+  }
 });
